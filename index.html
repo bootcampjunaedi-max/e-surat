@@ -419,7 +419,7 @@
         <div class="grid-main-side">
           <div class="stack">
             <div class="card card-accent" id="setProfil"></div>
-            <div class="card card-accent" id="setIdent"></div>
+            <div class="card" id="setIdent"></div>
             <div class="card card-accent" id="setTtd"></div>
             <div class="card card-accent-amber">
               <div class="card-head"><div><h3 class="card-title"><i class="bi bi-key"></i> Ubah Password</h3><div class="card-sub">Password baru langsung berlaku; sesi di perangkat lain akan diputus.</div></div><span class="chip chip-warn">MANDIRI</span></div>
@@ -458,6 +458,14 @@
               <div class="kv-mini" id="setKontak"></div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section class="view" id="v-logo" data-title="Logo Sekolah" data-crumb="LOGO &amp; NAMA SEKOLAH">
+        <div class="page-head"><div><h2 class="page-title page-title-xl">Logo &amp; Nama Sekolah</h2><p class="page-desc">Logo dan nama sekolah tampil di sidebar &amp; beranda akun unit, serta kop surat, lembar disposisi, dan buku agenda yang dicetak. Diunggah oleh akun <strong>Pimpinan</strong> (atau Admin Surat). Logo halaman login diatur Admin Surat.</p></div></div>
+        <div class="stack">
+          <div class="card card-accent" id="logoUnitCard"></div>
+          <div class="card"><div class="card-head"><h3 class="card-title"><i class="bi bi-eye"></i> Pratinjau</h3></div><div id="logoUnitPrev"></div></div>
         </div>
       </section>
 
@@ -617,6 +625,18 @@
         </div>
       </section>
 
+      <section class="view" id="v-adminlogo" data-title="Logo &amp; Identitas" data-crumb="PANEL ADMIN / LOGO &amp; IDENTITAS">
+        <div class="page-head"><div><h2 class="page-title page-title-xl">Logo &amp; Identitas</h2><p class="page-desc">Unggah logo yayasan, logo halaman login, dan logo sekolah setiap unit. Gambar PNG, JPG, atau WebP diperkecil otomatis menjadi maks 256&nbsp;px; latar transparan PNG dipertahankan.</p></div></div>
+        <div class="grid-2">
+          <div class="card card-accent" id="lgYysCard"></div>
+          <div class="card card-accent-amber" id="lgLoginCard"></div>
+        </div>
+        <div class="card mt-3">
+          <div class="card-head wrap"><div><h3 class="card-title"><i class="bi bi-buildings"></i> Logo Sekolah per Unit</h3><div class="card-sub" id="lgUnitInfo"></div></div><input id="lgUnitQ" class="input input-sm" placeholder="Cari unit&#x2026;" aria-label="Cari unit" style="max-width:240px"></div>
+          <div class="logo-grid" id="lgUnitGrid"></div>
+        </div>
+      </section>
+
       <section class="view" id="v-adminset" data-title="Pengaturan Admin" data-crumb="PANEL ADMIN / PENGATURAN">
         <div class="page-head"><div><h2 class="page-title page-title-xl">Pengaturan Admin &amp; Identitas</h2><p class="page-desc">Password Admin, identitas kop laporan, dan parameter keamanan sistem.</p></div></div>
         <div class="grid-2">
@@ -653,7 +673,7 @@
               <div class="col-md-4 field"><label for="idTelp">Telepon</label><input id="idTelp" class="input" maxlength="40"></div>
               <div class="col-md-4 field"><label for="idEmail">Email</label><input id="idEmail" class="input" maxlength="80"></div>
               <div class="col-md-4 field"><label for="idWeb">Website</label><input id="idWeb" class="input" maxlength="80"></div>
-              <div class="col-12 field"><label for="idLogo">Logo yayasan &#x2014; halaman login (URL https, opsional)</label><input id="idLogo" class="input" maxlength="300" placeholder="https://&#x2026;"><div class="small text-muted-2 mt-1">Hanya Admin Surat yang dapat mengubah logo ini. Tampil di halaman login, panel Admin, laporan Admin, dan unit yang belum mengunggah logo sendiri. Logo &amp; nama sekolah masing-masing diatur oleh akun Pimpinan di menu Pengaturan unit.</div></div>
+              <div class="col-12"><div class="alert-inline alert-info-soft mb-0"><i class="bi bi-images"></i><div>Logo yayasan, logo halaman login, dan logo sekolah tiap unit kini diunggah di menu <strong>Logo &amp; Identitas</strong>.</div></div></div>
               <div class="col-md-6 field"><label for="idTtdNama">Penandatangan laporan</label><input id="idTtdNama" class="input" maxlength="80"></div>
               <div class="col-md-6 field"><label for="idTtdJab">Jabatan</label><input id="idTtdJab" class="input" maxlength="80"></div>
               <div class="col-12 field"><label for="idJabDisp">Jabatan tujuan disposisi (semua unit)</label><input id="idJabDisp" class="input" maxlength="300" placeholder="Kepala TU, Bendahara, Staff, Wakil Kurikulum, Wakil Kesiswaan, Wakil Bid. Agama"><div class="small text-muted-2 mt-1">Pisahkan dengan koma. Muncul sebagai pilihan centang saat unit membuat disposisi.</div></div>
@@ -789,22 +809,22 @@
       <div class="modal-header"><div class="modal-title" id="mIdentT"><i class="bi bi-building"></i> Logo &amp; Nama Sekolah</div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
       <form id="formIdent" novalidate>
         <div class="modal-body">
-          <div class="field">
+          <div class="field" id="idnNamaWrap">
             <label for="idnNama">Nama sekolah / unit (tampil di aplikasi &amp; kop cetak)</label>
             <input id="idnNama" class="input" maxlength="120" autocomplete="organization" placeholder="Contoh: SMA Islam PB. Soedirman 1 Bekasi">
             <div class="small text-muted-2 mt-1" id="idnNamaHint"></div>
           </div>
           <div class="field">
-            <div class="field-head wrap"><label for="idnFile">Logo sekolah</label>
-              <div class="d-flex gap-2"><button type="button" class="btn btn-ghost btn-sm" id="idnHapus"><i class="bi bi-arrow-counterclockwise"></i> Pakai logo yayasan</button><label class="btn btn-outline btn-sm mb-0" for="idnFile"><i class="bi bi-upload"></i> Pilih gambar</label><input type="file" id="idnFile" accept="image/png,image/jpeg,image/webp" class="visually-hidden"></div></div>
+            <div class="field-head wrap"><label for="idnFile" id="idnLogoLabel">Logo sekolah</label>
+              <div class="d-flex gap-2"><button type="button" class="btn btn-ghost btn-sm" id="idnHapus"><i class="bi bi-arrow-counterclockwise"></i> <span id="idnHapusLabel">Pakai logo yayasan</span></button><label class="btn btn-outline btn-sm mb-0" for="idnFile"><i class="bi bi-upload"></i> Pilih gambar</label><input type="file" id="idnFile" accept="image/png,image/jpeg,image/webp" class="visually-hidden"></div></div>
             <div class="idn-drop" id="idnDrop"><div class="idn-logo" id="idnLogo"></div><div class="idn-drop-t">Seret gambar logo ke sini, atau klik <strong>Pilih gambar</strong>.<br><span>PNG, JPG, atau WebP, maks 5 MB. Diperkecil otomatis menjadi maks 256 px; latar transparan PNG tetap dipertahankan.</span></div></div>
           </div>
-          <div class="lbl mb-2">Pratinjau kop cetak</div>
+          <div class="lbl mb-2" id="idnPrevLabel">Pratinjau kop cetak</div>
           <div class="idn-kop" id="idnKop"></div>
-          <div class="alert-inline alert-info-soft mt-3 mb-0"><i class="bi bi-info-circle"></i><div>Logo &amp; nama ini dipakai di sidebar dan beranda akun Pimpinan &amp; Operator unit Anda, serta kop surat, lembar disposisi, dan buku agenda yang dicetak. <strong>Logo halaman login hanya dapat diubah Admin Surat.</strong></div></div>
+          <div class="alert-inline alert-info-soft mt-3 mb-0"><i class="bi bi-info-circle"></i><div id="idnInfo">Logo &amp; nama ini dipakai di sidebar dan beranda akun Pimpinan &amp; Operator unit Anda, serta kop surat, lembar disposisi, dan buku agenda yang dicetak. <strong>Logo halaman login hanya dapat diubah Admin Surat.</strong></div></div>
           <div class="field-err" id="idnErr" role="alert"></div>
         </div>
-        <div class="modal-footer"><button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-primary" id="btnIdnSimpan"><i class="bi bi-save"></i> Simpan Identitas</button></div>
+        <div class="modal-footer"><button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-primary" id="btnIdnSimpan"><i class="bi bi-save"></i> <span id="btnIdnSimpanLabel">Simpan Identitas</span></button></div>
       </form>
     </div>
   </div>

@@ -4,7 +4,7 @@
 'use strict';
 
 
-const VERSI_APP = '2.0.0';
+const VERSI_APP = '2.1.0';
 let BOOT = { siap: false, memuat: true, pesan: '' };
 const CDN = {
   chart: ['https:\/\/cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js', 'https:\/\/unpkg.com/chart.js@4.4.4/dist/chart.umd.js'],
@@ -22,7 +22,7 @@ const S = {
   identitas: {}, unitList: [], unitMap: {},
   surat: new Map(), notif: [], log: [], sesi: [], adaLagi: false,
   disposisi: [], ttd: null, urlApp: '', dispCid: null,
-  identUnit: null, logoYys: '', singkatYys: 'YASMA PB. Soedirman',
+  identUnit: null, logoKonfig: {}, singkatYys: 'YASMA PB. Soedirman',
   serverTs: 0, lastActivity: Date.now(), lastApi: 0, lastSync: 0,
   view: null, params: {}, history: [],
   pollTimer: null, idleTimer: null, polling: false, idleWarned: false,
@@ -456,9 +456,9 @@ function terapkanIdentitas(k) {
   $$('.js-maxmb').forEach(e => e.textContent = S.konfig.maks_mb);
   $$('.js-maxfile').forEach(e => e.textContent = S.konfig.maks_lampiran);
   $$('.js-poll').forEach(e => e.textContent = S.konfig.polling_detik);
-  S.logoYys = k.logo_url && /^https:[/][/]/.test(k.logo_url) ? k.logo_url : '';
+  S.logoKonfig = { logo_url: k.logo_url || '', logo_yayasan_file: k.logo_yayasan_file || '', logo_login_file: k.logo_login_file || '' };
   S.singkatYys = singkat;
-  $$('.js-emblem').forEach(e => isiEmblemYayasan(e));
+  $$('.js-emblem').forEach(e => isiEmblemYayasan(e, e.closest('#loginView') ? 'login' : 'yayasan'));
   document.title = app + ' \u2014 ' + singkat;
   const note = byId('lgSesiNote');
   if (note) note.textContent = 'Sesi otomatis berakhir setelah ' + (S.konfig.sesi_idle_menit || 30) + ' menit tidak aktif. Token tidak disimpan permanen di perangkat bersama.';
@@ -467,11 +467,46 @@ function terapkanIdentitas(k) {
 
 const EMBLEM_AWAL = new Map();
 const SVG_LAMBANG = '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="13" y="13" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="13" y="13" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" transform="rotate(45 24 24)"/><circle cx="24" cy="24" r="4.2" fill="currentColor"/></svg>';
-function htmlEmblemYayasan(alt) { return S.logoYys ? `<img src="${attr(S.logoYys)}" alt="${attr(alt || 'Logo ' + S.singkatYys)}">` : SVG_LAMBANG; }
-function isiEmblemYayasan(e) {
+function logoGlobal(jenis) {
+  const k = S.logoKonfig || {};
+  if (jenis === 'login' && k.logo_login_file) return { jenis: 'login', file: k.logo_login_file, url: '' };
+  return { jenis: 'yayasan', file: k.logo_yayasan_file || '', url: /^https:[/][/]/.test(k.logo_url || '') ? k.logo_url : '' };
+}
+function adaLogoGlobal(jenis) { const g = logoGlobal(jenis); return !!(g.file || g.url); }
+function kelasLogoGlobal(jenis) { return logoGlobal(jenis).file ? ' emblem-unit' : ''; }
+function muatLogoGlobal(jenis) {
+  const g = logoGlobal(jenis);
+  if (!g.file) return Promise.resolve(g.url);
+  if (LOGO.img.has(g.file)) return Promise.resolve(LOGO.img.get(g.file));
+  const lokal = store.get('yasma_logo_' + g.file);
+  if (lokal) { LOGO.img.set(g.file, lokal); return Promise.resolve(lokal); }
+  if (!window.YasmaApi || !window.YasmaApi.siap()) return Promise.resolve('');
+  if (LOGO.muat.has(g.file)) return LOGO.muat.get(g.file);
+  const p = window.YasmaApi.ambil('logo', { jenis: g.jenis })
+    .then(res => {
+      LOGO.muat.delete(g.file);
+      const d = res && res.success && res.data ? res.data.data : '';
+      if (!d) return '';
+      LOGO.img.set(res.data.file, d); simpanLogoLokal(res.data.file, d);
+      return d;
+    })
+    .catch(() => { LOGO.muat.delete(g.file); return ''; });
+  LOGO.muat.set(g.file, p);
+  return p;
+}
+function htmlEmblemYayasan(alt, jenis) {
+  const g = logoGlobal(jenis || 'yayasan');
+  if (!g.file && !g.url) return SVG_LAMBANG;
+  const src = g.file ? LOGO.img.get(g.file) : g.url;
+  return `<img data-logo-glob="${g.jenis}" alt="${attr(alt || 'Logo ' + S.singkatYys)}"${src ? ` src="${attr(src)}" class="siap"` : ''}>`;
+}
+function isiEmblemYayasan(e, jenis) {
   if (!EMBLEM_AWAL.has(e)) EMBLEM_AWAL.set(e, e.innerHTML);
   e.classList.remove('emblem-unit');
-  e.innerHTML = S.logoYys ? htmlEmblemYayasan() : EMBLEM_AWAL.get(e);
+  if (!adaLogoGlobal(jenis)) { e.innerHTML = EMBLEM_AWAL.get(e); return; }
+  if (kelasLogoGlobal(jenis)) e.classList.add('emblem-unit');
+  e.innerHTML = htmlEmblemYayasan('', jenis);
+  isiLogo(e);
 }
 
 const LOGO = { img: new Map(), muat: new Map() };
@@ -487,8 +522,12 @@ function logoUnitFile(unit) {
   return (S.unitMap[unit] && S.unitMap[unit].lg) || '';
 }
 function simpanLogoLokal(file, data) {
-  try { Object.keys(localStorage).filter(k => k.indexOf('yasma_logo_') === 0 && k !== 'yasma_logo_' + file).forEach(k => localStorage.removeItem(k)); } catch (e) {   }
+  let idx = store.json('yasma_logo_idx') || [];
+  idx = [file].concat(idx.filter(f => f !== file));
+  idx.slice(4).forEach(f => store.del('yasma_logo_' + f));
+  idx = idx.slice(0, 4);
   store.set('yasma_logo_' + file, data);
+  store.set('yasma_logo_idx', JSON.stringify(idx));
 }
 function muatLogo(unit) {
   const file = logoUnitFile(unit);
@@ -512,12 +551,18 @@ function muatLogo(unit) {
   return p;
 }
 function isiLogo(root) {
-  return Promise.all($$('img[data-logo-unit]', root).map(img => {
+  return Promise.all($$('img[data-logo-unit], img[data-logo-glob]', root).map(img => {
     if (img.classList.contains('siap')) return Promise.resolve();
-    return muatLogo(img.dataset.logoUnit).then(d => {
+    const glob = img.dataset.logoGlob;
+    return (glob ? muatLogoGlobal(glob) : muatLogo(img.dataset.logoUnit)).then(d => {
       if (d) { img.src = d; img.classList.add('siap'); return; }
       const em = img.closest('.emblem');
-      if (em) { em.classList.remove('emblem-unit'); em.innerHTML = htmlEmblemYayasan(); }
+      if (!em) return;
+      em.classList.remove('emblem-unit');
+      if (glob) { em.innerHTML = SVG_LAMBANG; return; }
+      if (kelasLogoGlobal('yayasan')) em.classList.add('emblem-unit');
+      em.innerHTML = htmlEmblemYayasan();
+      return isiLogo(em);
     });
   }));
 }
@@ -768,6 +813,7 @@ const MENU = {
     { v: 'masuk', i: 'bi-inbox', l: 'Surat Masuk', s: 'Masuk', c: 'masuk' },
     { v: 'keluar', i: 'bi-send', l: 'Surat Keluar', s: 'Keluar', c: 'keluar' },
     { v: 'notif', i: 'bi-bell', l: 'Notifikasi', s: 'Notif', c: 'notif' },
+    { v: 'logo', i: 'bi-image', l: 'Logo Sekolah', s: 'Logo', nb: 1 },
     { v: 'pengaturan', i: 'bi-gear', l: 'Pengaturan', s: 'Setelan' }
   ],
   Admin: [
@@ -775,6 +821,7 @@ const MENU = {
     { v: 'rekap', i: 'bi-table', l: 'Rekap Surat Global', s: 'Rekap', c: 'rekap' },
     { v: 'laporan', i: 'bi-printer', l: 'Laporan & Ekspor', s: 'Laporan' },
     { v: 'akun', i: 'bi-people', l: 'Kelola Akun Unit', s: 'Akun', c: 'akun' },
+    { v: 'adminlogo', i: 'bi-images', l: 'Logo & Identitas', s: 'Logo', nb: 1 },
     { v: 'adminset', i: 'bi-shield-lock', l: 'Pengaturan Admin', s: 'Setelan' }
   ]
 };
@@ -783,7 +830,7 @@ function renderNav() {
   const menu = MENU[S.peran] || MENU.Unit;
   byId('sbNav').innerHTML = `<div class="sb-sec">${S.peran === 'Admin' ? 'Analitik & Pengawasan' : 'Navigasi Utama'}</div>` +
     menu.map(m => `<button type="button" class="nav-item" data-go="${m.v}" data-nav="${m.v}"><i class="bi ${m.i}"></i><span>${m.l}</span>${m.c ? `<span class="nav-count" data-count="${m.c}" hidden>0</span>` : ''}</button>`).join('');
-  byId('bottomNav').innerHTML = menu.map(m => `<button type="button" class="bn" data-go="${m.v}" data-nav="${m.v}" aria-label="${m.l}"><i class="bi ${m.i}"></i><span>${m.s}</span>${m.c === 'masuk' || m.c === 'notif' ? `<span class="count-badge" data-count-b="${m.c}" hidden>0</span>` : ''}</button>`).join('');
+  byId('bottomNav').innerHTML = menu.filter(m => !m.nb).map(m => `<button type="button" class="bn" data-go="${m.v}" data-nav="${m.v}" aria-label="${m.l}"><i class="bi ${m.i}"></i><span>${m.s}</span>${m.c === 'masuk' || m.c === 'notif' ? `<span class="count-badge" data-count-b="${m.c}" hidden>0</span>` : ''}</button>`).join('');
 }
 
 function tampilkanView(v) {
@@ -798,8 +845,8 @@ function tampilkanView(v) {
 function go(v, p, o) {
   p = p || {}; o = o || {};
   if (!byId('v-' + v)) return;
-  if (S.peran === 'Admin' && ['beranda', 'masuk', 'keluar', 'detail', 'tulis', 'notif', 'pengaturan', 'cetak'].includes(v)) v = 'dashboard';
-  if (S.peran === 'Unit' && ['dashboard', 'rekap', 'laporan', 'akun', 'adminset'].includes(v)) v = 'beranda';
+  if (S.peran === 'Admin' && ['beranda', 'masuk', 'keluar', 'detail', 'tulis', 'notif', 'pengaturan', 'cetak', 'logo'].includes(v)) v = 'dashboard';
+  if (S.peran === 'Unit' && ['dashboard', 'rekap', 'laporan', 'akun', 'adminset', 'adminlogo'].includes(v)) v = 'beranda';
   if (S.view === 'tulis' && v !== 'tulis') tulisSimpanDrafDiam();
   if (S.view && !o.tanpaRiwayat && !(S.view === v && JSON.stringify(S.params) === JSON.stringify(p))) {
     S.history.push({ v: S.view, p: S.params });
@@ -820,7 +867,8 @@ function renderView(v) {
   const r = {
     beranda: renderBeranda, masuk: renderMasuk, keluar: renderKeluar, detail: renderDetail, tulis: bukaTulis,
     notif: renderNotif, pengaturan: renderPengaturan, cetak: renderCetak,
-    dashboard: renderDashboard, rekap: renderRekap, laporan: renderLaporan, akun: renderAkun, adminset: renderAdminSet
+    dashboard: renderDashboard, rekap: renderRekap, laporan: renderLaporan, akun: renderAkun, adminset: renderAdminSet,
+    logo: renderLogoUnit, adminlogo: renderAdminLogo
   }[v];
   try { r && r(S.params); } catch (e) { console.error(e); toast('Gagal menampilkan halaman', pesanError(e), 'danger'); }
 }
@@ -928,7 +976,12 @@ function terapkanDelta(d) {
   if ('ident' in d) {
     const berubah = JSON.stringify(S.identUnit || null) !== JSON.stringify(d.ident || null);
     S.identUnit = d.ident || null;
-    if (berubah) { terapkanIdentUnit(); if (S.view === 'pengaturan') renderIdentCard(); }
+    if (berubah) { terapkanIdentUnit(); if (S.view === 'logo') renderLogoUnit(); if (S.view === 'pengaturan') renderIdentPointer(); }
+  }
+  if (d.identitas && JSON.stringify(d.identitas) !== JSON.stringify(S.identitas)) {
+    S.identitas = d.identitas;
+    terapkanIdentitas(Object.assign({}, S.identitas, { versi: S.konfig.versi }));
+    if (S.view === 'logo') renderLogoUnit();
   }
   const baru = kotakMasuk().filter(s => belumDibaca(s) && !sebelum.has(s.id));
   if (baru.length) {
@@ -1532,45 +1585,129 @@ function renderPengaturan() {
   byId('prefBunyi').checked = pref('bunyi', false);
   byId('prefGelap').checked = document.documentElement.getAttribute('data-theme') === 'dark';
   if (!byId('formPass').dataset.siap) { pasangKekuatan(byId('pBaru'), byId('pStrength')); byId('formPass').dataset.siap = '1'; }
-  renderIdentCard();
+  renderIdentPointer();
   renderTtdCard();
   renderPengaturanDinamis();
 }
 
 function bolehIdentitas() { return S.peran === 'Unit' && !!S.profil && S.profil.bolehIdent !== false && S.profil.level !== 'Operator'; }
-function renderIdentCard() {
+function emblemUnitHtml(unit, kelas) {
+  const f = logoUnitFile(unit);
+  return f ? `<div class="emblem emblem-unit ${kelas}">${imgLogoUnit(unit)}</div>` : `<div class="emblem ${kelas}${kelasLogoGlobal('yayasan')}">${htmlEmblemYayasan()}</div>`;
+}
+function renderIdentPointer() {
   const w = byId('setIdent'); if (!w || !S.profil) return;
-  const id = S.identUnit, boleh = bolehIdentitas(), f = logoUnitFile(S.unit), nama = namaTampil(S.unit);
-  w.innerHTML = `<div class="card-head"><div><h3 class="card-title"><i class="bi bi-building"></i> Logo &amp; Nama Sekolah</h3><div class="card-sub">Tampil di sidebar, beranda, dan kop cetak unit ini. Logo halaman login diatur Admin Surat.</div></div>${f ? '<span class="chip chip-ok">LOGO SEKOLAH</span>' : '<span class="chip">LOGO YAYASAN</span>'}</div>
-    <div class="ttd-card"><div class="emblem ident-prev${f ? ' emblem-unit' : ''}">${f ? imgLogoUnit(S.unit) : htmlEmblemYayasan()}</div>
-      <div class="min-w-0"><div class="ml">Nama sekolah (tampilan)</div><div class="mv">${esc(nama)}</div>
-        <div class="ms">Nama unit pada surat, login &amp; register: <strong>${esc(S.unit)}</strong> (tetap)</div>
-        ${id && id.at ? `<div class="ms">Diperbarui ${fmtWaktu(id.at)}${id.oleh ? ' oleh ' + esc(id.oleh) : ''}</div>` : ''}</div></div>
-    ${boleh ? `<div class="d-flex justify-content-end mt-2"><button type="button" class="btn ${id ? 'btn-outline' : 'btn-primary'}" id="btnIdentAtur"><i class="bi bi-pencil-square"></i> ${id ? 'Ubah logo &amp; nama' : 'Atur logo &amp; nama sekolah'}</button></div>`
-      : `<div class="alert-inline alert-info-soft mb-0"><i class="bi bi-person-lock"></i><div><strong>Akun Operator.</strong> Logo dan nama sekolah hanya dapat diubah dari akun <strong>${esc(S.unit)} (Pimpinan)</strong>.</div></div>`}`;
-  if (boleh) byId('btnIdentAtur').onclick = bukaIdent;
+  w.innerHTML = `<div class="d-flex align-items-center gap-3 flex-wrap">${emblemUnitHtml(S.unit, 'emblem-sm')}
+    <div class="min-w-0 flex-grow-1"><div class="ml">Logo &amp; nama sekolah</div><div class="mv">${esc(namaTampil(S.unit))}</div></div>
+    <button type="button" class="btn btn-outline btn-sm" id="btnKeLogo"><i class="bi bi-image"></i> Buka menu Logo Sekolah</button></div>`;
+  byId('btnKeLogo').onclick = () => go('logo');
   isiLogo(w);
 }
+function renderLogoUnit() {
+  const w = byId('logoUnitCard'); if (!w || !S.profil || S.peran !== 'Unit') return;
+  const id = S.identUnit, boleh = bolehIdentitas(), f = logoUnitFile(S.unit), nama = namaTampil(S.unit);
+  w.innerHTML = `<div class="card-head"><div><h3 class="card-title"><i class="bi bi-image"></i> Logo &amp; Nama Sekolah</h3><div class="card-sub">${esc(S.unit)}</div></div>${f ? '<span class="chip chip-ok">LOGO SEKOLAH</span>' : '<span class="chip">LOGO YAYASAN (BAWAAN)</span>'}</div>
+    <div class="logo-hero">${emblemUnitHtml(S.unit, 'emblem-xl')}
+      <div class="min-w-0"><div class="ml">Nama sekolah (tampilan)</div><div class="mv">${esc(nama)}</div>
+        <div class="ms">Nama unit pada surat, login &amp; register: <strong>${esc(S.unit)}</strong> (tetap)</div>
+        ${id && id.at ? `<div class="ms">Diperbarui ${fmtWaktu(id.at)}${id.oleh ? ' oleh ' + esc(id.oleh) : ''}</div>` : '<div class="ms">Belum ada logo sekolah; sementara memakai logo yayasan.</div>'}</div></div>
+    ${boleh ? `<div class="d-flex justify-content-end gap-2 flex-wrap"><button type="button" class="btn btn-primary" id="btnIdentAtur"><i class="bi bi-upload"></i> ${f ? 'Ganti logo / nama sekolah' : 'Unggah logo sekolah'}</button></div>`
+      : `<div class="alert-inline alert-info-soft mb-0"><i class="bi bi-person-lock"></i><div><strong>Akun Operator.</strong> Logo dan nama sekolah hanya dapat diubah dari akun <strong>${esc(S.unit)} (Pimpinan)</strong> atau oleh Admin Surat.</div></div>`}`;
+  if (boleh) byId('btnIdentAtur').onclick = bukaIdent;
+  byId('logoUnitPrev').innerHTML = `<div class="logo-prev-grid"><div class="min-w-0"><div class="ml mb-2">Kop cetak (surat, lembar disposisi, buku agenda)</div><div class="idn-kop">${kopHtml(namaTampil(S.unit), S.unit)}</div></div>
+    <div><div class="ml mb-2">Sidebar aplikasi</div><div class="lp-sb">${emblemUnitHtml(S.unit, 'emblem-sm')}<div class="min-w-0"><div class="lp-sb-n">${esc(nama)}</div><div class="lp-sb-s">${esc(id && id.nama ? S.singkatYys : 'Persuratan Terpusat')}</div></div></div></div></div>`;
+  isiLogo(byId('v-logo'));
+}
 
-const IDN = { baru: '', hapus: false };
-function bukaIdent() {
-  if (!bolehIdentitas()) return;
-  IDN.baru = ''; IDN.hapus = false;
-  byId('idnNama').value = (S.identUnit && S.identUnit.nama) || '';
-  byId('idnNamaHint').innerHTML = 'Kosongkan untuk memakai nama unit <strong>' + esc(S.unit) + '</strong>. Nama unit pada surat, login, dan register Admin tidak berubah.';
+function renderAdminLogo() {
+  if (S.peran !== 'Admin') return;
+  const k = S.logoKonfig || {}, gy = logoGlobal('yayasan'), k2 = S.identitas || {};
+  const sumberY = k.logo_yayasan_file ? 'BERKAS UNGGAHAN' : gy.url ? 'URL LAMA' : 'LAMBANG BAWAAN';
+  byId('lgYysCard').innerHTML = `<div class="card-head"><div><h3 class="card-title"><i class="bi bi-bank"></i> Logo Yayasan</h3><div class="card-sub">Logo resmi yayasan untuk dokumen &amp; panel Admin.</div></div><span class="chip${k.logo_yayasan_file ? ' chip-ok' : ''}">${sumberY}</span></div>
+    <div class="logo-hero"><div class="emblem emblem-xl${kelasLogoGlobal('yayasan')}">${htmlEmblemYayasan('Logo yayasan')}</div>
+      <div class="min-w-0"><div class="ml">Dipakai di</div><ul class="logo-pakai"><li>Kop laporan &amp; cetak Admin, sidebar panel Admin</li><li>Kop cetak &amp; sidebar unit yang belum punya logo sekolah</li><li>Halaman login, bila logo login belum diunggah</li></ul></div></div>
+    <div class="d-flex justify-content-end"><button type="button" class="btn btn-primary" id="btnLogoYys"><i class="bi bi-upload"></i> ${k.logo_yayasan_file ? 'Ganti logo yayasan' : 'Unggah logo yayasan'}</button></div>`;
+  byId('lgLoginCard').innerHTML = `<div class="card-head"><div><h3 class="card-title"><i class="bi bi-box-arrow-in-right"></i> Logo Halaman Login</h3><div class="card-sub">Tampil di halaman login sebelum pengguna masuk.</div></div><span class="chip${k.logo_login_file ? ' chip-ok' : ''}">${k.logo_login_file ? 'LOGO KHUSUS LOGIN' : 'IKUT LOGO YAYASAN'}</span></div>
+    <div class="idn-kop mb-3"><div class="idn-login"><div class="emblem emblem-md${kelasLogoGlobal('login')}">${htmlEmblemYayasan('Logo halaman login', 'login')}</div><div class="min-w-0"><div class="idn-login-tag">PORTAL RESMI PERSURATAN</div><div class="idn-login-t">${esc(k2.nama_aplikasi || 'Aplikasi Surat Terpusat')} ${esc(k2.singkatan || '')}</div></div></div></div>
+    <div class="d-flex justify-content-end"><button type="button" class="btn btn-primary" id="btnLogoLogin"><i class="bi bi-upload"></i> ${k.logo_login_file ? 'Ganti logo login' : 'Unggah logo login'}</button></div>`;
+  byId('btnLogoYys').onclick = () => bukaIdentMode('yayasan');
+  byId('btnLogoLogin').onclick = () => bukaIdentMode('login');
+  const q = byId('lgUnitQ');
+  if (!q.dataset.siap) { q.addEventListener('input', debounce(renderGridLogoUnit, 120)); q.dataset.siap = '1'; }
+  renderGridLogoUnit();
+  isiLogo(byId('v-adminlogo'));
+}
+function renderGridLogoUnit() {
+  const q = (byId('lgUnitQ').value || '').trim().toLowerCase();
+  const semua = S.unitList || [], list = semua.filter(u => !q || (u.n + ' ' + (u.t || '') + ' ' + (u.g || '')).toLowerCase().indexOf(q) >= 0);
+  byId('lgUnitInfo').textContent = semua.filter(u => u.lg).length + ' dari ' + semua.length + ' unit sudah memakai logo sekolah. Pimpinan unit juga dapat mengunggah dari menu Logo Sekolah.';
+  byId('lgUnitGrid').innerHTML = list.length ? list.map(u => `<div class="logo-tile">${emblemUnitHtml(u.n, 'emblem-lg')}
+      <div class="lgt-n" title="${attr(u.t || u.n)}">${esc(u.t || u.n)}</div>
+      <div class="lgt-s">${esc(u.n)}${u.g ? ' \u00B7 ' + esc(u.g) : ''}</div>
+      <span class="chip${u.lg ? ' chip-ok' : ''}">${u.lg ? 'LOGO SEKOLAH' : 'LOGO YAYASAN'}</span>
+      <button type="button" class="btn btn-outline btn-sm" data-ubah-unit="${attr(u.n)}"><i class="bi bi-upload"></i> ${u.lg ? 'Ganti logo' : 'Unggah logo'}</button></div>`).join('')
+    : kosong('Unit tidak ditemukan', 'Ubah kata kunci pencarian.', 'bi-search');
+  $$('[data-ubah-unit]', byId('lgUnitGrid')).forEach(b => { b.onclick = () => bukaIdentMode('adminUnit', b.dataset.ubahUnit); });
+  isiLogo(byId('lgUnitGrid'));
+}
+
+const IDN = { mode: 'unit', unit: '', baru: '', hapus: false };
+const IDN_TEKS = {
+  unit: { judul: 'Logo & Nama Sekolah', ikon: 'bi-building', hapus: 'Pakai logo yayasan', simpan: 'Simpan Identitas', prev: 'Pratinjau kop cetak',
+    info: 'Logo &amp; nama ini dipakai di sidebar dan beranda akun Pimpinan &amp; Operator unit Anda, serta kop surat, lembar disposisi, dan buku agenda yang dicetak. <strong>Logo halaman login hanya dapat diubah Admin Surat.</strong>' },
+  adminUnit: { judul: 'Logo & Nama Sekolah', ikon: 'bi-building', hapus: 'Pakai logo yayasan', simpan: 'Simpan untuk Unit Ini', prev: 'Pratinjau kop cetak',
+    info: 'Anda (Admin Surat) mengatur logo &amp; nama sekolah untuk unit ini. Akun Pimpinan unit tetap dapat menggantinya dari menu <strong>Logo Sekolah</strong>.' },
+  yayasan: { judul: 'Logo Yayasan', ikon: 'bi-bank', hapus: 'Kembalikan lambang bawaan', simpan: 'Simpan Logo Yayasan', prev: 'Pratinjau kop laporan Admin',
+    info: 'Dipakai di sidebar &amp; laporan Admin, kop cetak unit yang belum punya logo sekolah, dan halaman login bila logo login belum diunggah.' },
+  login: { judul: 'Logo Halaman Login', ikon: 'bi-box-arrow-in-right', hapus: 'Ikuti logo yayasan', simpan: 'Simpan Logo Login', prev: 'Pratinjau halaman login',
+    info: 'Hanya tampil di halaman login (sebelum pengguna masuk). Bila dikosongkan, halaman login memakai logo yayasan.' }
+};
+function modeUnitIdn() { return IDN.mode === 'unit' || IDN.mode === 'adminUnit'; }
+function bukaIdent() { if (bolehIdentitas()) bukaIdentMode('unit', S.unit); }
+function bukaIdentMode(mode, unit) {
+  if ((mode === 'unit' && !bolehIdentitas()) || (mode !== 'unit' && S.peran !== 'Admin')) return;
+  IDN.mode = mode; IDN.unit = unit || ''; IDN.baru = ''; IDN.hapus = false;
+  const t = IDN_TEKS[mode], unitMode = modeUnitIdn();
+  byId('mIdentT').innerHTML = `<i class="bi ${t.ikon}"></i> ${esc(t.judul)}${mode === 'adminUnit' ? ' \u2014 ' + esc(unit) : ''}`;
+  byId('idnNamaWrap').hidden = !unitMode;
+  byId('idnLogoLabel').textContent = unitMode ? 'Logo sekolah' : t.judul;
+  byId('idnHapusLabel').textContent = t.hapus;
+  byId('idnPrevLabel').textContent = t.prev;
+  byId('idnInfo').innerHTML = t.info;
+  byId('btnIdnSimpanLabel').textContent = t.simpan;
+  if (unitMode) {
+    byId('idnNama').value = mode === 'unit' ? ((S.identUnit && S.identUnit.nama) || '') : ((S.unitMap[unit] && S.unitMap[unit].t) || '');
+    byId('idnNamaHint').innerHTML = 'Kosongkan untuk memakai nama unit <strong>' + esc(unit) + '</strong>. Nama unit pada surat, login, dan register Admin tidak berubah.';
+  }
   byId('idnFile').value = ''; byId('idnErr').textContent = '';
   renderIdnPratinjau();
   modal('mIdent').show();
 }
 function renderIdnPratinjau() {
-  const f = logoUnitFile(S.unit), lama = !IDN.baru && !IDN.hapus && !!f, kustom = !!IDN.baru || lama;
-  const isi = IDN.baru ? `<img src="${attr(IDN.baru)}" alt="Logo baru" class="siap">` : lama ? imgLogoUnit(S.unit) : htmlEmblemYayasan();
+  const m = IDN.mode, unitMode = modeUnitIdn(), k = S.logoKonfig || {};
+  let isi, kelas, bisaHapus;
+  if (IDN.baru) { isi = `<img src="${attr(IDN.baru)}" alt="Logo baru" class="siap">`; kelas = ' emblem-unit'; bisaHapus = true; }
+  else if (unitMode) {
+    const f = !IDN.hapus && logoUnitFile(IDN.unit);
+    isi = f ? imgLogoUnit(IDN.unit) : htmlEmblemYayasan(); kelas = f ? ' emblem-unit' : kelasLogoGlobal('yayasan'); bisaHapus = !!f;
+  } else if (m === 'login') {
+    const pakaiYys = IDN.hapus || !k.logo_login_file;
+    isi = htmlEmblemYayasan('', pakaiYys ? 'yayasan' : 'login'); kelas = kelasLogoGlobal(pakaiYys ? 'yayasan' : 'login'); bisaHapus = !pakaiYys;
+  } else {
+    const ada = !IDN.hapus && adaLogoGlobal('yayasan');
+    isi = ada ? htmlEmblemYayasan() : SVG_LAMBANG; kelas = ada ? kelasLogoGlobal('yayasan') : ''; bisaHapus = ada;
+  }
   const el = byId('idnLogo');
-  el.className = 'emblem idn-emblem' + (kustom ? ' emblem-unit' : '');
+  el.className = 'emblem idn-emblem' + kelas;
   el.innerHTML = isi;
-  byId('idnHapus').disabled = !kustom;
-  const k = S.identitas, nama = byId('idnNama').value.trim().replace(/\s+/g, ' ') || S.unit;
-  byId('idnKop').innerHTML = `<div class="kop"><div class="emblem${kustom ? ' emblem-unit' : ''}">${isi}</div><div class="kop-text"><div class="kop-yys">${esc(k.nama_yayasan || 'Yayasan Masjid Panglima Besar Soedirman')}</div><div class="kop-unit">${esc(nama)}</div>${k.alamat ? `<div class="kop-addr">${esc(k.alamat)}</div>` : ''}</div></div>`;
+  byId('idnHapus').disabled = !bisaHapus;
+  const ki = S.identitas || {};
+  if (m === 'login') {
+    byId('idnKop').innerHTML = `<div class="idn-login"><div class="emblem emblem-md${kelas}">${isi}</div><div class="min-w-0"><div class="idn-login-tag">PORTAL RESMI PERSURATAN</div><div class="idn-login-t">${esc(ki.nama_aplikasi || 'Aplikasi Surat Terpusat')} ${esc(ki.singkatan || '')}</div></div></div>`;
+  } else {
+    const sub = unitMode ? (byId('idnNama').value.trim().replace(/\s+/g, ' ') || IDN.unit) : 'Sekretariat Pengurus \u2014 Sistem Persuratan Terpusat';
+    byId('idnKop').innerHTML = `<div class="kop"><div class="emblem${kelas}">${isi}</div><div class="kop-text"><div class="kop-yys">${esc(ki.nama_yayasan || 'Yayasan Masjid Panglima Besar Soedirman')}</div><div class="kop-unit">${esc(sub)}</div>${ki.alamat ? `<div class="kop-addr">${esc(ki.alamat)}</div>` : ''}</div></div>`;
+  }
   isiLogo(byId('mIdent'));
 }
 function olahLogo(file) {
@@ -1601,21 +1738,42 @@ function olahLogo(file) {
 async function simpanIdent(ev) {
   ev.preventDefault();
   const err = byId('idnErr'); err.textContent = '';
+  const m = IDN.mode, unitMode = modeUnitIdn();
   const nama = byId('idnNama').value.trim().replace(/\s+/g, ' ');
-  if (nama && nama.length < 3) { err.textContent = 'Nama sekolah minimal 3 karakter, atau kosongkan untuk memakai nama unit.'; byId('idnNama').focus(); return; }
-  const btn = byId('btnIdnSimpan'); sibuk(btn, true, 'Menyimpan...');
+  if (unitMode && nama && nama.length < 3) { err.textContent = 'Nama sekolah minimal 3 karakter, atau kosongkan untuk memakai nama unit.'; byId('idnNama').focus(); return; }
+  if (!unitMode && !IDN.baru && !IDN.hapus) { err.textContent = 'Pilih gambar logo terlebih dahulu, atau tekan "' + IDN_TEKS[m].hapus + '".'; return; }
+  const btn = byId('btnIdnSimpan'); sibuk(btn, true, 'Menyimpan\u2026');
   try {
-    const res = await api('simpanIdentitasUnit', S.token, { nama, logo: IDN.baru || '', hapusLogo: !IDN.baru && IDN.hapus });
+    const dataUnit = { nama, logo: IDN.baru || '', hapusLogo: !IDN.baru && IDN.hapus };
+    const res = m === 'unit' ? await api('simpanIdentitasUnit', S.token, dataUnit)
+      : m === 'adminUnit' ? await api('adminSimpanIdentitasUnit', S.token, IDN.unit, dataUnit)
+      : await api('adminSimpanLogo', S.token, m, IDN.baru ? { logo: IDN.baru } : { hapus: true });
     if (!res.success) { err.textContent = res.message; return; }
-    const d = res.data || null;
-    if (IDN.baru && d && d.logo) { LOGO.img.set(d.logo, IDN.baru); simpanLogoLokal(d.logo, IDN.baru); }
-    S.identUnit = d;
-    const u = S.unitMap[S.unit];
-    if (u) { if (d && d.nama) u.t = d.nama; else delete u.t; if (d && d.logo) u.lg = d.logo; else delete u.lg; }
+    const tanpa = res.message === 'Tidak ada perubahan.';
+    if (unitMode) {
+      const d = res.data || null;
+      if (IDN.baru && d && d.logo) { LOGO.img.set(d.logo, IDN.baru); simpanLogoLokal(d.logo, IDN.baru); }
+      if (m === 'unit') S.identUnit = d;
+      const u = S.unitMap[IDN.unit];
+      if (u) { if (d && d.nama) u.t = d.nama; else delete u.t; if (d && d.logo) u.lg = d.logo; else delete u.lg; }
+      if (m === 'adminUnit' && S.adm) (S.adm.akun || []).forEach(a => { if (a.nama === IDN.unit) a.tampil = (d && d.nama) || ''; });
+    } else {
+      const k = res.data || {}, f = m === 'login' ? k.logo_login_file : k.logo_yayasan_file;
+      if (IDN.baru && f) { LOGO.img.set(f, IDN.baru); simpanLogoLokal(f, IDN.baru); }
+      S.identitas = k;
+      terapkanIdentitas(Object.assign({}, S.identitas, { versi: S.konfig.versi }));
+    }
     simpanCache();
     modal('mIdent').hide();
-    terapkanIdentUnit(); renderIdentCard();
-    toast(res.message === 'Tidak ada perubahan.' ? 'Tidak ada perubahan' : 'Identitas sekolah tersimpan', res.message === 'Tidak ada perubahan.' ? '' : 'Logo dan nama langsung dipakai di sidebar, beranda, dan kop cetak.', 'success');
+    terapkanIdentUnit();
+    if (S.view === 'logo') renderLogoUnit();
+    if (S.view === 'adminlogo') renderAdminLogo();
+    if (S.view === 'pengaturan') renderIdentPointer();
+    const judul = m === 'unit' ? 'Identitas sekolah tersimpan' : m === 'adminUnit' ? 'Logo ' + IDN.unit + ' tersimpan' : res.message;
+    const ket = m === 'unit' ? 'Logo dan nama langsung dipakai di sidebar, beranda, dan kop cetak.'
+      : m === 'adminUnit' ? 'Akun unit melihat perubahan pada sinkronisasi berikutnya.'
+      : 'Halaman login & unit lain memakai logo baru saat dimuat ulang.';
+    toast(tanpa ? 'Tidak ada perubahan' : judul, tanpa ? '' : ket, 'success');
   } catch (e) { if (!e.ditangani) err.textContent = pesanError(e); }
   finally { sibuk(btn, false); }
 }
@@ -2035,7 +2193,7 @@ const C = { mode: 'lengkap' };
 
 function emblemKop(unit) {
   if (logoUnitFile(unit)) return `<div class="emblem emblem-unit">${imgLogoUnit(unit)}</div>`;
-  return `<div class="emblem">${htmlEmblemYayasan('Logo')}</div>`;
+  return `<div class="emblem${kelasLogoGlobal('yayasan')}">${htmlEmblemYayasan('Logo')}</div>`;
 }
 function kopHtml(subjudul, unit) {
   const k = S.identitas, kontak = [k.alamat, k.telepon ? 'Telp: ' + k.telepon : '', k.email ? 'Email: ' + k.email : '', k.website ? k.website : ''].filter(Boolean).join(' \u00B7 ');
@@ -2670,7 +2828,7 @@ async function ubahStatusAkun(id) {
 
 function renderAdminSet() {
   const k = S.identitas;
-  const isi = { idNamaApp: 'nama_aplikasi', idYayasan: 'nama_yayasan', idSingkat: 'singkatan', idKota: 'kota', idAlamat: 'alamat', idTelp: 'telepon', idEmail: 'email', idWeb: 'website', idLogo: 'logo_url', idTtdNama: 'penandatangan_nama', idTtdJab: 'penandatangan_jabatan', idJabDisp: 'jabatan_disposisi', cfIdle: 'sesi_idle_menit', cfPoll: 'polling_detik', cfMaks: 'maks_percobaan_login', cfKunci: 'kunci_menit' };
+  const isi = { idNamaApp: 'nama_aplikasi', idYayasan: 'nama_yayasan', idSingkat: 'singkatan', idKota: 'kota', idAlamat: 'alamat', idTelp: 'telepon', idEmail: 'email', idWeb: 'website', idTtdNama: 'penandatangan_nama', idTtdJab: 'penandatangan_jabatan', idJabDisp: 'jabatan_disposisi', cfIdle: 'sesi_idle_menit', cfPoll: 'polling_detik', cfMaks: 'maks_percobaan_login', cfKunci: 'kunci_menit' };
   Object.entries(isi).forEach(([id, key]) => byId(id).value = k[key] || '');
   if (!byId('formPassAdm').dataset.siap) { pasangKekuatan(byId('aBaru'), byId('aStrength')); byId('formPassAdm').dataset.siap = '1'; }
 }
@@ -2723,7 +2881,7 @@ function pasangEventAdmin() {
   byId('akQ').addEventListener('input', debounce(fa, 110));
   ['akStatus', 'akKelompok', 'akJenis'].forEach(id => byId(id).addEventListener('change', fa));
   byId('formPassAdm').addEventListener('submit', ev => simpanPassword(ev, ['aLama', 'aBaru', 'aUlang', 'aErr'], ev.target.querySelector('[type="submit"]')));
-  byId('formIdentitas').addEventListener('submit', ev => simpanKonfigurasi(ev, { idNamaApp: 'nama_aplikasi', idYayasan: 'nama_yayasan', idSingkat: 'singkatan', idKota: 'kota', idAlamat: 'alamat', idTelp: 'telepon', idEmail: 'email', idWeb: 'website', idLogo: 'logo_url', idTtdNama: 'penandatangan_nama', idTtdJab: 'penandatangan_jabatan', idJabDisp: 'jabatan_disposisi' }));
+  byId('formIdentitas').addEventListener('submit', ev => simpanKonfigurasi(ev, { idNamaApp: 'nama_aplikasi', idYayasan: 'nama_yayasan', idSingkat: 'singkatan', idKota: 'kota', idAlamat: 'alamat', idTelp: 'telepon', idEmail: 'email', idWeb: 'website', idTtdNama: 'penandatangan_nama', idTtdJab: 'penandatangan_jabatan', idJabDisp: 'jabatan_disposisi' }));
   byId('formSistem').addEventListener('submit', ev => simpanKonfigurasi(ev, { cfIdle: 'sesi_idle_menit', cfPoll: 'polling_detik', cfMaks: 'maks_percobaan_login', cfKunci: 'kunci_menit' }));
 }
 

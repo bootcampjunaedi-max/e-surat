@@ -1,4 +1,4 @@
-# Panduan Instalasi — Aplikasi Surat Terpusat YASMA PB. Soedirman v2.0
+# Panduan Instalasi — Aplikasi Surat Terpusat YASMA PB. Soedirman v2.1
 
 **Arsitektur baru:** frontend di **GitHub Pages**, backend **Google Apps Script sebagai REST API (JSON)**.
 
@@ -22,6 +22,37 @@ Yang **berubah**:
 | Browser memanggil server lewat `google.script.run` | Browser memanggil server lewat `fetch()` ke URL `/exec` |
 | URL `/exec` menampilkan aplikasi | URL `/exec` hanya **API** (membalas data JSON) |
 | QR disposisi menuju `/exec?v=KODE` | QR baru menuju `verifikasi.html?v=KODE` di GitHub Pages. **QR lama tetap berlaku.** |
+
+---
+
+## Pembaruan v2.1 — menu unggah logo
+
+| Akun | Menu baru | Isi |
+|---|---|---|
+| **Admin Surat** | **Logo & Identitas** (sidebar) | • **Logo Yayasan**: kop laporan Admin, sidebar Admin, serta kop & sidebar unit yang belum punya logo sekolah<br>• **Logo Halaman Login**: hanya tampil di halaman login; bila kosong memakai logo yayasan<br>• **Logo Sekolah per Unit**: daftar semua unit, tombol **Unggah/Ganti logo** + nama sekolah untuk unit mana pun |
+| **Unit sekolah** (Pimpinan) | **Logo Sekolah** (sidebar) | Unggah/ganti logo & nama sekolah unit sendiri, dengan pratinjau kop cetak dan sidebar |
+| **Unit sekolah** (Operator) | **Logo Sekolah** (sidebar) | Hanya melihat, tanpa tombol unggah |
+
+- Unggahan berupa gambar **PNG, JPG, atau WebP** (maks 5 MB). Gambar diperkecil otomatis menjadi maks 256 px; latar transparan PNG dipertahankan. Bisa klik **Pilih gambar** atau seret berkas ke kotak unggah.
+- Isian **URL logo** di *Pengaturan Admin* dihapus. URL lama (bila pernah diisi) tetap dipakai sampai Admin mengunggah logo yayasan atau menekan **Kembalikan lambang bawaan**.
+- Logo tersimpan privat di folder Drive `_Logo_Unit`. Logo lama otomatis dipindah ke Sampah saat diganti. Setiap perubahan tercatat di Log_Aktivitas (`ATUR_LOGO_YAYASAN`, `ATUR_LOGO_LOGIN`, `ATUR_IDENTITAS`).
+- Di HP, menu Logo ada di sidebar (tombol ☰), bukan di bilah bawah.
+
+### Cara memperbarui dari v2.0
+
+**Backend:** ganti isi `Kode.gs` → jalankan `diagnosaAplikasi` (semua ✅, termasuk *Logo yayasan & halaman login*) → **Deploy → Manage deployments → Edit → New version → Deploy**. URL `/exec` tetap sama.
+
+**Frontend:** salin **hanya** berkas berikut dari ZIP baru ke folder `frontend` di komputer Anda (timpa yang lama):
+`index.html`, `css/style.css`, `js/app.js`, `README.md`, `PANDUAN-INSTALASI.md`.
+⚠️ **Jangan menimpa `js/config.js`** — berkas Anda sudah berisi `GAS_URL`; versi di ZIP masih berisi teks contoh. Bila terlanjur tertimpa, isi lagi `GAS_URL` (Tahap 2).
+
+Lalu dari dalam folder `frontend`:
+```bash
+git add .
+git commit -m "v2.1: menu unggah logo"
+git push
+```
+Tunggu 1–2 menit, buka situs, tekan **Ctrl+Shift+R**.
 
 ---
 

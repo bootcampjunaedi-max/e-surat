@@ -12,7 +12,7 @@ Frontend statis (HTML/CSS/JavaScript tanpa framework) untuk **Aplikasi Surat Ter
 | `js/app.js` | Logika aplikasi |
 | `js/verifikasi.js` | Logika halaman verifikasi |
 
-Versi: **2.0.0** (migrasi dari v1.3.0 berbasis HtmlService).
+Versi: **2.1.0** — menu unggah logo yayasan, logo halaman login, dan logo sekolah per unit (v2.0.0: migrasi dari v1.3.0 berbasis HtmlService).
 
 Langkah lengkap pemasangan backend dan GitHub Pages: lihat **[PANDUAN-INSTALASI.md](PANDUAN-INSTALASI.md)**.
 

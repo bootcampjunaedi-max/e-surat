@@ -137,6 +137,26 @@ code { font-family: var(--f-mono); font-size: .85em; color: var(--amber-ink); ba
 .emblem-unit img { background: transparent; transition: opacity .2s; }
 .emblem-unit img:not(.siap) { opacity: 0; }
 .emblem.emblem-md.emblem-unit { border-color: var(--line-strong); }
+.emblem img[data-logo-glob]:not(.siap) { opacity: 0; }
+.emblem-xl { width: 120px; height: 120px; }
+.logo-hero { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.logo-pakai { margin: 4px 0 0 18px; padding: 0; font-size: 13px; color: var(--ink-2); line-height: 1.7; }
+.logo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.logo-tile { border: 1px solid var(--line); border-radius: var(--r-lg); padding: 16px 12px 14px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; background: var(--surface); }
+.logo-tile .lgt-n { font-weight: 700; font-size: 13.5px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 2.6em; overflow-wrap: anywhere; }
+.logo-tile .lgt-s { font-size: 12px; color: var(--muted); }
+.logo-tile .btn { margin-top: 4px; }
+.idn-login { display: flex; gap: 14px; align-items: center; }
+.idn-login-tag { font-size: 11px; letter-spacing: .08em; font-weight: 700; color: #475569; }
+.idn-login-t { font-size: 17px; font-weight: 700; color: #0F172A; line-height: 1.3; }
+.lp-sb { display: flex; align-items: center; gap: 10px; background: var(--primary); color: #fff; border-radius: var(--r-lg); padding: 12px 14px; }
+.lp-sb-n { font-weight: 700; font-size: 14px; line-height: 1.3; }
+.lp-sb-s { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
+.logo-hero .ml, #setIdent .ml, #logoUnitPrev .ml { font-family: var(--f-head); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted-2); }
+.logo-hero .mv, #setIdent .mv { margin-top: 4px; font-weight: 700; font-size: 16px; color: var(--ink); overflow-wrap: anywhere; }
+.logo-hero .ms { margin-top: 4px; font-size: 12.5px; color: var(--muted-2); }
+.logo-prev-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+@media (max-width: 991.98px) { .logo-prev-grid { grid-template-columns: minmax(0, 1fr); } }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted-2); flex: none; }
 .dot-ok { background: var(--ok-dot); box-shadow: 0 0 0 3px rgba(16, 185, 129, .18); }
 .dot-warn { background: var(--amber-bright); }
