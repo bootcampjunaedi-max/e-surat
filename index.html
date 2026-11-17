@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0F4C3A">
+  <meta name="description" content="Aplikasi Surat Terpusat Yayasan Masjid Panglima Besar Soedirman">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="data:,">
+  <title>Aplikasi Surat Terpusat &#x2014; YASMA PB. Soedirman</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      var galat = [];
+      window.__YASMA_GALAT__ = galat;
+      window.addEventListener('error', function (e) {
+        var el = e && e.target;
+        if (el && el !== window && (el.src || el.href)) { galat.push('Gagal memuat pustaka: ' + (el.src || el.href)); return; }
+        if (e && e.message) {
+          galat.push(e.message + (e.lineno ? ' (baris ' + e.lineno + ', kolom ' + e.colno + ')' : ''));
+        }
+      }, true);
+      window.addEventListener('unhandledrejection', function (e) { galat.push('Promise: ' + (e.reason && e.reason.message || e.reason)); });
+      try { if (localStorage.getItem('yasma_tema') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {   }
+      function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+      function periksa() {
+        if (window.__YASMA_SIAP__) return;
+        var sp = document.getElementById('splash'); if (!sp) return;
+        var js = !!window.__YASMA_JS_LENGKAP__, cfg = !!window.YASMA_CONFIG, api = !!window.YasmaApi, css = false;
+        try { css = !!getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(); } catch (e) {   }
+        var kurang = [];
+        if (!css) kurang.push('css/style.css');
+        if (!cfg) kurang.push('js/config.js');
+        if (!api) kurang.push('js/api.js');
+        if (!js) kurang.push('js/app.js');
+        var sebab = kurang.length
+          ? 'Berkas berikut tidak termuat: <b>' + kurang.join(', ') + '</b>. Biasanya karena struktur folder di repository GitHub tidak utuh (berkas CSS/JS tidak berada di dalam folder <b>css/</b> dan <b>js/</b>) atau berkas belum ikut di-push.'
+          : 'Skrip aplikasi berhenti saat memulai.';
+        sp.innerHTML = '<div style="max-width:680px;margin:0 16px;background:#fff;color:#0F172A;border-radius:8px;border-top:4px solid #F97316;padding:22px 24px;font:14px/1.6 system-ui,sans-serif;text-align:left;max-height:92vh;overflow:auto">'
+          + '<div style="font-weight:700;font-size:17px;margin-bottom:6px">Aplikasi gagal dimuat</div>'
+          + '<div style="margin-bottom:10px">' + sebab + '</div>'
+          + '<ol style="margin:0 0 10px 18px;padding:0"><li>Buka repository di github.com: harus terlihat <b>index.html</b>, folder <b>css/</b> (style.css) dan folder <b>js/</b> (config.js, api.js, app.js) di halaman utama repository.</li>'
+          + '<li>Bila berkas rata di root atau ada yang hilang: perbaiki struktur di komputer, lalu <b>git add . &rarr; git commit &rarr; git push</b> (lihat Panduan Instalasi).</li>'
+          + '<li>Tunggu 1&ndash;2 menit, lalu tekan <b>Ctrl+Shift+R</b>.</li></ol>'
+          + (galat.length ? '<div style="font:12px/1.5 monospace;background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA;border-radius:4px;padding:8px 10px;margin-bottom:8px">' + galat.slice(0, 4).map(esc).join('<br>') + '</div>' : '')
+          + '<div style="font-size:12px;color:#64748B;margin-top:10px">Kirimkan tangkapan layar pesan ini (dan tab Console di F12) bila masih bermasalah.</div></div>';
+        sp.style.opacity = '1';
+      }
+      window.addEventListener('load', function () { setTimeout(periksa, 5000); });
+      setTimeout(periksa, 20000);
+    })();
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" onerror="this.onerror=null;this.href='https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css'">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" onerror="this.onerror=null;this.href='https://unpkg.com/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css'">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="splash" class="splash" role="status" aria-live="polite">
+  <div class="emblem emblem-lg"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="13" y="13" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="13" y="13" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" transform="rotate(45 24 24)"/><circle cx="24" cy="24" r="4.2" fill="currentColor"/></svg></div>
+  <div class="splash-text">Memuat Aplikasi Surat Terpusat&#x2026;</div>
+  <div class="splash-bar"><span></span></div>
+</div>
+
+<div id="loginView" class="login-view" hidden>
+  <header class="login-band">
+    <div class="login-band-inner">
+      <span class="band-chip">PORTAL RESMI</span>
+      <div class="login-band-text">
+        <div class="login-band-title">Portal Autentikasi Persuratan Terpadu</div>
+        <div class="login-band-sub js-org-full">Yayasan Masjid Panglima Besar Soedirman</div>
+      </div>
+      <span class="band-chip band-chip-status d-none d-md-inline-flex"><i class="dot dot-ok"></i> Sistem Aktif</span>
+    </div>
+  </header>
+
+  <main class="login-main">
+    <div class="login-card card card-accent">
+      <div class="login-brand">
+        <div class="emblem emblem-md js-emblem"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="13" y="13" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="13" y="13" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" transform="rotate(45 24 24)"/><circle cx="24" cy="24" r="4.2" fill="currentColor"/></svg></div>
+        <div>
+          <div class="eyebrow"><i class="dot dot-primary"></i> Portal Resmi Persuratan</div>
+          <h1 class="login-app-name"><span class="js-app-name">Aplikasi Surat Terpusat</span> <span class="js-org-short">YASMA PB. Soedirman</span></h1>
+          <p class="login-app-sub">Sistem Pengelolaan &amp; Arus Surat Menyurat Antarunit Terpadu</p>
+        </div>
+      </div>
+      <div class="rule"></div>
+
+      <div id="loginNotReady" class="alert-inline alert-warn" hidden></div>
+
+      <form id="loginForm" novalidate autocomplete="on">
+        <h2 class="login-title"><i class="bi bi-box-arrow-in-right"></i> Masuk ke Sistem</h2>
+        <p class="text-muted-2 mb-4">Gunakan kredensial akun unit kerja atau akun administratif Anda.</p>
+
+        <div class="field">
+          <div class="field-head"><label for="lgAkun">Akun / Nama Unit</label><span class="field-tag tag-warn">[Wajib dipilih]</span></div>
+          <select id="lgAkun" class="input" required></select>
+        </div>
+        <div class="field">
+          <div class="field-head"><label for="lgPass">Password</label><span class="field-tag">[Sensitif huruf]</span></div>
+          <div class="input-wrap">
+            <input type="password" id="lgPass" class="input" autocomplete="current-password" required maxlength="64">
+            <button type="button" class="input-eye" data-eye="lgPass" aria-label="Tampilkan password"><i class="bi bi-eye"></i></button>
+          </div>
+        </div>
+        <div id="lgAlert" class="alert-inline alert-warn" role="alert" hidden></div>
+        <button type="submit" class="btn btn-primary btn-xl w-100" id="lgBtn"><span>MASUK</span> <i class="bi bi-box-arrow-in-right"></i></button>
+      </form>
+
+      <p class="login-help">Lupa password? <strong>Hubungi Admin Surat untuk reset.</strong></p>
+      <div class="login-note"><i class="bi bi-lock"></i> <span id="lgSesiNote">Sesi otomatis berakhir setelah 30 menit tidak aktif. Token tidak disimpan permanen di perangkat bersama.</span></div>
+    </div>
+  </main>
+
+  <footer class="login-foot">
+    <span><span class="js-org-short">YASMA PB. Soedirman</span> &#xA9; <span class="js-year"></span> &#xB7; Sistem Pengelolaan Surat Terpadu</span>
+    <span class="login-foot-tag">TIDAK BERSIFAT PUBLIK</span>
+  </footer>
+</div>
+
+<div id="appShell" class="app" hidden>
+
+  <aside id="sidebar" class="sidebar" aria-label="Navigasi utama">
+    <div class="sb-brand">
+      <div class="emblem emblem-sm js-emblem" id="sbEmblem"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="13" y="13" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6"/><rect x="13" y="13" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" transform="rotate(45 24 24)"/><circle cx="24" cy="24" r="4.5" fill="currentColor"/></svg></div>
+      <div class="sb-brand-text">
+        <div class="sb-org js-org-short" id="sbOrg">YASMA PB. Soedirman</div>
+        <div class="sb-sub" id="sbSub">Persuratan Terpusat</div>
+      </div>
+      <button type="button" class="icon-btn sb-close" id="btnSbClose" aria-label="Tutup menu"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="sb-role"><span id="sbRole">PANEL UNIT</span><span class="sb-ver js-ver">v1.0</span></div>
+    <div class="sb-compose-wrap role-unit">
+      <button type="button" class="btn btn-primary w-100" data-go="tulis"><i class="bi bi-pencil-square"></i> Tulis Surat Baru</button>
+    </div>
+    <nav class="sb-nav" id="sbNav"></nav>
+    <div class="sb-foot">
+      <div class="sb-session">
+        <span class="dot dot-ok" id="sbDot"></span>
+        <div class="min-w-0">
+          <div class="sb-session-label">SESI LOGIN</div>
+          <div class="sb-session-unit text-truncate" id="sbUnit">&#x2014;</div>
+        </div>
+        <span class="chip chip-ok" id="sbOnline">ONLINE</span>
+      </div>
+      <button type="button" class="btn btn-outline w-100" id="btnLogout"><i class="bi bi-box-arrow-left"></i> Keluar Sistem</button>
+    </div>
+  </aside>
+  <div class="sb-backdrop" id="sbBackdrop"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button type="button" class="icon-btn tb-menu" id="btnMenu" aria-label="Buka menu"><i class="bi bi-list"></i></button>
+      <div class="tb-title">
+        <div class="tb-crumb" id="tbCrumb">APLIKASI SURAT TERPUSAT</div>
+        <div class="tb-h" id="tbTitle">Beranda</div>
+      </div>
+      <div class="tb-search role-unit">
+        <i class="bi bi-search"></i>
+        <input type="search" id="qsInput" placeholder="Cari cepat nomor, perihal, atau unit&#x2026;" aria-label="Pencarian cepat" autocomplete="off">
+        <kbd>/</kbd>
+        <div class="qs-results" id="qsResults" hidden></div>
+      </div>
+      <div class="tb-actions">
+        <span class="sync-chip" id="syncChip" title="Status sinkronisasi"><i class="dot dot-ok"></i><span>Tersinkron</span></span>
+        <div class="dropdown role-unit">
+          <button type="button" class="icon-btn" id="btnBell" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Notifikasi">
+            <i class="bi bi-bell"></i><span class="count-badge" id="bellCount" hidden>0</span>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end bell-menu" id="bellMenu"></div>
+        </div>
+        <button type="button" class="icon-btn" id="btnTheme" aria-label="Ganti mode terang/gelap"><i class="bi bi-moon-stars"></i></button>
+        <div class="user-chip">
+          <div class="avatar" id="ucAvatar">&#x2014;</div>
+          <div class="uc-text">
+            <div class="uc-name text-truncate" id="ucName">&#x2014;</div>
+            <div class="uc-role" id="ucRole">&#x2014;</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="content" class="content" tabindex="-1">
+
+      <section class="view" id="v-beranda" data-title="Beranda" data-crumb="BERANDA UNIT">
+        <div class="hero">
+          <div class="hero-main">
+            <div class="hero-tags"><span class="hero-tag">PORTAL TATA USAHA RESMI</span><span class="hero-tag" id="heroLevel" hidden></span><span class="hero-ta" id="heroTa">T.A. &#x2014;</span></div>
+            <h2 class="hero-title">Selamat Datang, <span class="js-unit-nama">&#x2014;</span></h2>
+            <p class="hero-sub">Sistem Informasi Administrasi Persuratan Terpusat <span class="js-org-full"></span>.</p>
+          </div>
+          <div class="hero-side">
+            <button type="button" class="btn btn-hero" id="btnSync"><i class="bi bi-arrow-repeat"></i> Sinkronkan</button>
+            <div class="hero-meta" id="heroMeta">&#x2014;</div>
+          </div>
+        </div>
+        <div class="kpi-grid" id="berandaKpi"></div>
+        <div class="grid-main-side">
+          <div class="card">
+            <div class="card-head"><h3 class="card-title"><i class="bi bi-inbox"></i> Surat Masuk Terbaru</h3><button type="button" class="link-btn" data-go="masuk">Lihat semua <i class="bi bi-arrow-right"></i></button></div>
+            <div id="berandaMasuk"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3 class="card-title"><i class="bi bi-bell"></i> Notifikasi Terkini</h3><button type="button" class="link-btn" data-go="notif">Pusat notifikasi <i class="bi bi-arrow-right"></i></button></div>
+            <div id="berandaNotif"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3 class="card-title"><i class="bi bi-send"></i> Surat Keluar Terbaru</h3><button type="button" class="link-btn" data-go="keluar">Buku arsip keluar <i class="bi bi-arrow-right"></i></button></div>
+          <div id="berandaKeluar"></div>
+        </div>
+      </section>
+
+      <section class="view" id="v-masuk" data-title="Surat Masuk" data-crumb="KOTAK MASUK UNIT">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow-sq">MODUL REGISTRASI DOKUMEN MASUK</div>
+            <h2 class="page-title">Surat Masuk <span class="page-title-sub">Kotak Masuk <span class="js-unit"></span></span></h2>
+          </div>
+          <div class="head-stats" id="masukStats"></div>
+        </div>
+        <div class="card filter-card" id="masukFilter"></div>
+        <div class="card card-flush">
+          <div class="table-tools">
+            <span class="text-muted-2 small" id="masukInfo"></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnMasukXlsx"><i class="bi bi-file-earmark-spreadsheet"></i> Ekspor Excel</button>
+          </div>
+          <div id="masukList"></div>
+          <div class="pager" id="masukPager"></div>
+        </div>
+        <div class="note-card"><i class="bi bi-info-circle"></i><div><strong>Penanganan surat masuk.</strong> Membuka surat otomatis mengubah status menjadi <em>Dibaca</em> dan mencatat waktunya. Surat <span class="t-warn">PENTING</span> dan <span class="t-danger">RAHASIA</span> ditandai khusus agar diprioritaskan.</div></div>
+      </section>
+
+      <section class="view" id="v-keluar" data-title="Surat Keluar" data-crumb="OUTBOX UNIT">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow-sq">UNIT KERJA: <span class="js-unit"></span></div>
+            <h2 class="page-title">Surat Keluar <span class="page-title-sub">Buku Arsip Keluar</span></h2>
+          </div>
+          <div class="head-actions">
+            <button type="button" class="btn btn-outline" id="btnAgenda"><i class="bi bi-printer"></i> Buku Agenda Keluar</button>
+            <button type="button" class="btn btn-primary" data-go="tulis"><i class="bi bi-plus-circle"></i> Tulis Surat Baru</button>
+          </div>
+        </div>
+        <div class="kpi-strip" id="keluarKpi"></div>
+        <div class="card filter-card" id="keluarFilter"></div>
+        <div class="card card-flush">
+          <div class="table-tools">
+            <span class="text-muted-2 small" id="keluarInfo"></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnKeluarXlsx"><i class="bi bi-file-earmark-spreadsheet"></i> Ekspor Excel</button>
+          </div>
+          <div id="keluarList"></div>
+          <div class="pager" id="keluarPager"></div>
+        </div>
+        <div class="policy-grid">
+          <div class="policy policy-green"><div class="policy-h"><i class="bi bi-shield-check"></i> Hak akses naskah</div><p>Naskah keluar hanya dapat dibuka unit pembuat dan unit yang tercantum sebagai tujuan resmi. Admin Surat hanya melihat metadata register, tanpa isi dan lampiran.</p></div>
+          <div class="policy policy-amber"><div class="policy-h"><i class="bi bi-pencil"></i> Protokol "Telah Diubah"</div><p>Surat yang sudah dibaca penerima tetap dapat diubah pengirimnya. Surat diberi penanda <strong>TELAH DIUBAH</strong> dan perubahan tercatat di Log Aktivitas.</p></div>
+          <div class="policy policy-slate"><div class="policy-h"><i class="bi bi-trash3"></i> Mekanisme soft delete</div><p>Menghapus surat tidak menghapus baris database. Surat ditandai <code>dihapus = TRUE</code>, hilang dari daftar aktif, dan tetap tersimpan untuk audit.</p></div>
+        </div>
+      </section>
+
+      <section class="view" id="v-detail" data-title="Detail Surat" data-crumb="DETAIL SURAT">
+        <div id="detailBody"></div>
+      </section>
+
+      <section class="view" id="v-tulis" data-title="Tulis Surat" data-crumb="FORMULIR NASKAH DINAS">
+        <div class="page-head">
+          <div>
+            <button type="button" class="back-link" id="tulisBack"><i class="bi bi-arrow-left"></i> Kembali</button>
+            <h2 class="page-title" id="tulisJudul">Tulis &amp; Kirim Surat Baru Antarunit</h2>
+            <div class="page-sub-mono" id="tulisSub">SISTEM PENGIRIMAN NASKAH DINAS RESMI</div>
+          </div>
+          <div class="head-actions">
+            <span class="draft-chip" id="draftChip" hidden><i class="dot dot-ok"></i> <span>Draf tersimpan</span></span>
+          </div>
+        </div>
+
+        <div class="grid-form">
+          <form id="tulisForm" novalidate class="form-col">
+            <div id="tulisInduk" class="ref-card" hidden></div>
+
+            <div class="card form-sec">
+              <div class="sec-head"><span class="sec-no">1</span><h3>Informasi Surat &amp; Legalitas</h3><span class="sec-tag">[META-DATA MANDATORI]</span></div>
+              <div class="row g-3">
+                <div class="col-md-6 field">
+                  <label>Unit Pengirim Resmi (Read-only)</label>
+                  <div class="input input-ro"><span class="js-unit"></span><span class="chip chip-ok ms-auto js-kode"></span></div>
+                  <div class="hint">Otorisasi berdasarkan kredensial sesi login aktif.</div>
+                </div>
+                <div class="col-md-6 field">
+                  <label for="fTanggal">Tanggal Surat <span class="req">*</span></label>
+                  <input type="date" id="fTanggal" class="input" required>
+                  <div class="hint">Tanggal penetapan / penandatanganan naskah dinas.</div>
+                </div>
+                <div class="col-12 field">
+                  <div class="field-head"><label for="fNomor">Nomor Surat Resmi <span class="req">*</span></label><button type="button" class="link-btn small" id="btnGenNomor"><i class="bi bi-magic"></i> Usulkan nomor berikutnya</button></div>
+                  <div class="input-wrap">
+                    <input type="text" id="fNomor" class="input mono" maxlength="80" required placeholder="Contoh: 082/SMA-BKS1/X/2026" autocomplete="off">
+                    <span class="input-state" id="nomorState"></span>
+                  </div>
+                  <div id="nomorInfo" class="status-box" hidden></div>
+                </div>
+                <div class="col-12 field">
+                  <label>Sifat / Tingkat Kerahasiaan Dokumen <span class="req">*</span></label>
+                  <div class="radio-cards" id="fSifat" role="radiogroup">
+                    <label class="radio-card rc-biasa"><input type="radio" name="sifat" value="Biasa" checked><span class="rc-t">BIASA / RUTIN</span><span class="rc-d">Distribusi standar, informasi umum antarunit.</span></label>
+                    <label class="radio-card rc-penting"><input type="radio" name="sifat" value="Penting"><span class="rc-t">PENTING (PRIORITAS)</span><span class="rc-d">Perlu segera ditindaklanjuti penerima.</span></label>
+                    <label class="radio-card rc-rahasia"><input type="radio" name="sifat" value="Rahasia"><span class="rc-t">RAHASIA (TERBATAS)</span><span class="rc-d">Hanya pengirim &amp; tujuan yang disebut.</span></label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card form-sec" id="secTujuan">
+              <div class="sec-head"><span class="sec-no">2</span><h3>Distribusi &amp; Unit Tujuan</h3><span class="sec-tag">[MULTI-RECIPIENT]</span></div>
+              <div id="tujuanLocked" class="locked-box" hidden></div>
+              <div id="tujuanPicker"></div>
+            </div>
+
+            <div class="card form-sec">
+              <div class="sec-head"><span class="sec-no">3</span><h3>Konten &amp; Perihal Naskah</h3><span class="sec-tag">[RINGKASAN EKSEKUTIF]</span></div>
+              <div class="field">
+                <div class="field-head"><label for="fPerihal">Perihal / Hal Surat <span class="req">*</span></label><span class="counter" id="cPerihal">0 / 250</span></div>
+                <input type="text" id="fPerihal" class="input" maxlength="250" required placeholder="Gunakan subjek padat dan lugas">
+              </div>
+              <div class="field" id="templateBox" hidden>
+                <label>Template cepat balasan</label>
+                <div class="chip-row">
+                  <button type="button" class="chip-btn" data-tpl="hadir">+ Konfirmasi Kehadiran</button>
+                  <button type="button" class="chip-btn" data-tpl="jadwal">+ Permohonan Penjadwalan Ulang</button>
+                  <button type="button" class="chip-btn" data-tpl="berkas">+ Penyampaian Berkas</button>
+                </div>
+              </div>
+              <div class="field">
+                <div class="field-head"><label for="fIsi">Ringkasan Isi / Catatan Pengantar</label><span class="counter" id="cIsi">0 / 5000</span></div>
+                <textarea id="fIsi" class="input" rows="6" maxlength="5000" placeholder="Tuliskan ringkasan isi surat, poin tindak lanjut, atau catatan pengantar&#x2026;"></textarea>
+                <div class="hint">Catatan ini tampil pada notifikasi penerima (kecuali surat Rahasia).</div>
+              </div>
+            </div>
+
+            <div class="card form-sec">
+              <div class="sec-head"><span class="sec-no">4</span><h3>Lampiran Berkas &amp; Dokumen Digital</h3><span class="sec-tag">[GOOGLE DRIVE]</span></div>
+              <label class="dropzone" id="dropzone" for="fFile">
+                <input type="file" id="fFile" multiple hidden>
+                <span class="dz-icon"><i class="bi bi-file-earmark-arrow-up"></i></span>
+                <span class="dz-title">Seret berkas naskah ke sini atau <u>klik untuk memilih</u></span>
+                <span class="dz-sub" id="dzSub">PDF, JPG, PNG, DOCX, XLSX &#xB7; maks 10 MB per berkas</span>
+              </label>
+              <div class="file-list" id="fileList"></div>
+            </div>
+          </form>
+
+          <aside class="side-col">
+            <div class="card side-card sticky-side">
+              <div class="side-head"><span>AUDIT RINGKAS DRAF</span><span class="chip chip-ok">LIVE</span></div>
+              <dl class="kv" id="tulisRingkas"></dl>
+              <div class="side-sep"></div>
+              <div class="side-head"><span>SIMULASI KOTAK MASUK PENERIMA</span></div>
+              <div id="tulisPreview"></div>
+              <div class="side-sep"></div>
+              <div class="side-head"><span>KETENTUAN PERSURATAN</span></div>
+              <ol class="rules">
+                <li><strong>Nomor unik per unit.</strong> Sistem memberi peringatan bila nomor sudah dipakai unit Anda.</li>
+                <li><strong>Notifikasi otomatis.</strong> Unit tujuan langsung menerima pemberitahuan di aplikasi.</li>
+                <li><strong>Batas berkas.</strong> Maksimal <span class="js-maxmb">10</span> MB per berkas, <span class="js-maxfile">5</span> berkas per surat.</li>
+                <li><strong>Jejak perubahan.</strong> Surat yang diubah setelah dibaca diberi penanda dan tercatat di log.</li>
+              </ol>
+            </div>
+          </aside>
+        </div>
+
+        <div class="action-bar">
+          <div class="ab-left">
+            <button type="button" class="btn btn-outline" id="btnSimpanDraf"><i class="bi bi-save"></i> <span class="d-none d-sm-inline">Simpan Draf</span></button>
+            <button type="button" class="btn btn-ghost-danger" id="btnBuangDraf"><i class="bi bi-x-circle"></i> <span class="d-none d-sm-inline">Buang</span></button>
+          </div>
+          <div class="ab-mid d-none d-md-flex"><i class="bi bi-shield-lock"></i> <span id="abInfo">Lampiran tersimpan privat di Google Drive yayasan.</span></div>
+          <div class="ab-right">
+            <button type="button" class="btn btn-primary btn-lg" id="btnKirim"><span id="btnKirimLabel">Kirim Surat</span> <i class="bi bi-send"></i></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="v-notif" data-title="Notifikasi" data-crumb="PUSAT NOTIFIKASI">
+        <div class="page-head">
+          <div>
+            <h2 class="page-title"><i class="bi bi-bell"></i> Pusat Notifikasi Persuratan</h2>
+            <div class="page-sub-mono"><i class="bi bi-arrow-repeat"></i> Diperbarui otomatis setiap <span class="js-poll">30</span> detik selama aplikasi terbuka</div>
+          </div>
+          <div class="head-actions">
+            <button type="button" class="btn btn-outline" id="btnNotifSemua"><i class="bi bi-check2-all"></i> Tandai Semua Dibaca</button>
+            <button type="button" class="btn btn-primary" id="btnNotifSegar"><i class="bi bi-arrow-repeat"></i> Segarkan</button>
+          </div>
+        </div>
+        <div class="kpi-grid" id="notifKpi"></div>
+        <div class="card filter-card">
+          <div class="tabs" id="notifTabs" role="tablist"></div>
+          <div class="filter-row mt-3">
+            <div class="search-box flex-grow-1"><i class="bi bi-search"></i><input type="search" id="nfQ" class="input" placeholder="Cari unit pengirim, nomor, atau perihal&#x2026;"></div>
+            <select id="nfSifat" class="input w-auto" aria-label="Filter sifat"><option value="">Sifat: Semua</option><option>Biasa</option><option>Penting</option><option>Rahasia</option></select>
+            <select id="nfStatus" class="input w-auto" aria-label="Filter status"><option value="">Status: Semua</option><option value="belum">Belum dibaca</option><option value="sudah">Sudah dibaca</option></select>
+            <select id="nfHari" class="input w-auto" aria-label="Rentang waktu"><option value="7">7 hari terakhir</option><option value="30" selected>30 hari terakhir</option><option value="90">90 hari terakhir</option></select>
+          </div>
+        </div>
+        <div id="notifList" class="notif-list"></div>
+        <div class="pager" id="notifPager"></div>
+      </section>
+
+      <section class="view" id="v-pengaturan" data-title="Pengaturan" data-crumb="PENGATURAN PROFIL & KEAMANAN">
+        <div class="hero hero-compact">
+          <div class="hero-main">
+            <div class="hero-tags"><span class="hero-tag">MODUL TATA KELOLA MANDIRI</span></div>
+            <h2 class="hero-title">Pengaturan &amp; Keamanan Akun</h2>
+            <p class="hero-sub">Profil satuan kerja, penggantian password, sesi perangkat, dan preferensi tampilan.</p>
+          </div>
+        </div>
+        <div class="grid-main-side">
+          <div class="stack">
+            <div class="card card-accent" id="setProfil"></div>
+            <div class="card card-accent" id="setIdent"></div>
+            <div class="card card-accent" id="setTtd"></div>
+            <div class="card card-accent-amber">
+              <div class="card-head"><div><h3 class="card-title"><i class="bi bi-key"></i> Ubah Password</h3><div class="card-sub">Password baru langsung berlaku; sesi di perangkat lain akan diputus.</div></div><span class="chip chip-warn">MANDIRI</span></div>
+              <form id="formPass" novalidate>
+                <div class="field"><label for="pLama">Password saat ini</label><div class="input-wrap"><input type="password" id="pLama" class="input" autocomplete="current-password" required maxlength="64"><button type="button" class="input-eye" data-eye="pLama" aria-label="Tampilkan"><i class="bi bi-eye"></i></button></div></div>
+                <div class="field"><label for="pBaru">Password baru</label><div class="input-wrap"><input type="password" id="pBaru" class="input" autocomplete="new-password" required maxlength="64"><button type="button" class="input-eye" data-eye="pBaru" aria-label="Tampilkan"><i class="bi bi-eye"></i></button></div></div>
+                <div class="strength" id="pStrength"></div>
+                <div class="field"><label for="pUlang">Konfirmasi password baru</label><div class="input-wrap"><input type="password" id="pUlang" class="input" autocomplete="new-password" required maxlength="64"><button type="button" class="input-eye" data-eye="pUlang" aria-label="Tampilkan"><i class="bi bi-eye"></i></button></div><div class="field-err" id="pErr"></div></div>
+                <div class="alert-inline alert-danger-soft"><i class="bi bi-shield-exclamation"></i><div><strong>Ketentuan keamanan.</strong> Password wajib diperbarui berkala dan tidak dibagikan, termasuk antara akun Pimpinan dan Operator. Seluruh aktivitas tercatat di log atas nama akun yang login.</div></div>
+                <div class="d-flex gap-2 justify-content-end mt-3"><button type="reset" class="btn btn-ghost">Reset</button><button type="submit" class="btn btn-primary" id="btnPassSimpan"><i class="bi bi-key"></i> Simpan Password</button></div>
+              </form>
+            </div>
+            <div class="card">
+              <div class="card-head"><div><h3 class="card-title"><i class="bi bi-laptop"></i> Sesi Aktif &amp; Perangkat</h3><div class="card-sub">Perangkat yang sedang masuk dengan akun ini.</div></div><button type="button" class="btn btn-danger-soft btn-sm" id="btnPutusSesi"><i class="bi bi-box-arrow-right"></i> Putuskan sesi lain</button></div>
+              <div id="setSesi"></div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="card">
+              <div class="card-head"><h3 class="card-title"><i class="bi bi-shield-lock"></i> Protokol Keamanan</h3></div>
+              <ul class="proto-list" id="setProtokol"></ul>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3 class="card-title"><i class="bi bi-sliders"></i> Preferensi Perangkat Ini</h3></div>
+              <div class="pref"><div><div class="pref-t">Pembaruan otomatis</div><div class="pref-d">Cek surat &amp; notifikasi baru tiap <span class="js-poll">30</span> detik.</div></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="prefPoll" checked aria-label="Pembaruan otomatis"></div></div>
+              <div class="pref"><div><div class="pref-t">Bunyi surat masuk</div><div class="pref-d">Nada singkat saat ada surat/disposisi baru.</div></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="prefBunyi" aria-label="Bunyi surat masuk"></div></div>
+              <div class="pref"><div><div class="pref-t">Mode gelap</div><div class="pref-d">Nyaman untuk ruang minim cahaya.</div></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="prefGelap" aria-label="Mode gelap"></div></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3 class="card-title"><i class="bi bi-journal-text"></i> Log Terakhir Unit Ini</h3></div>
+              <div class="mono-log" id="setLog"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3 class="card-title"><i class="bi bi-life-preserver"></i> Bantuan Persuratan</h3></div>
+              <p class="small text-muted-2 mb-2">Lupa password, butuh akun baru, atau ingin mengubah data profil unit? Hubungi <strong>Admin Surat</strong> di Sekretariat Pengurus.</p>
+              <div class="kv-mini" id="setKontak"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="v-cetak" data-title="Pratinjau Cetak" data-crumb="PRATINJAU CETAK A4">
+        <div class="print-toolbar">
+          <button type="button" class="back-link" id="cetakBack"><i class="bi bi-arrow-left"></i> Kembali ke detail</button>
+          <div class="seg" id="cetakMode" role="tablist">
+            <button type="button" class="seg-btn active" data-mode="lengkap">Surat + Lembar Disposisi</button>
+            <button type="button" class="seg-btn" data-mode="surat">Surat Saja</button>
+            <button type="button" class="seg-btn" data-mode="disposisi">Lembar Disposisi</button>
+          </div>
+          <div class="ms-auto d-flex gap-2">
+            <button type="button" class="btn btn-amber" id="btnCetak"><i class="bi bi-printer"></i> Cetak / Simpan PDF</button>
+          </div>
+        </div>
+        <div class="print-layout">
+          <aside class="card print-opts">
+            <div class="side-head"><span><i class="bi bi-sliders"></i> PENGATURAN CETAK</span><span class="chip">A4</span></div>
+            <label class="check"><input type="checkbox" id="ckKop" checked> Sertakan kop resmi yayasan</label>
+            <label class="check"><input type="checkbox" id="ckMeta" checked> Sertakan metadata &amp; nomor agenda</label>
+            <label class="check"><input type="checkbox" id="ckLamp" checked> Daftar lampiran berkas</label>
+            <label class="check"><input type="checkbox" id="ckWm"> Watermark RAHASIA / DRAF</label>
+            <div class="side-sep"></div>
+            <div class="small text-muted-2">Gunakan tujuan printer <strong>"Simpan sebagai PDF"</strong> untuk menyimpan berkas digital. Pencetakan dicatat di Log Aktivitas.</div>
+          </aside>
+          <div class="print-stage"><div id="cetakPage" class="a4"></div></div>
+        </div>
+      </section>
+
+      <section class="view" id="v-dashboard" data-title="Dashboard Analitik" data-crumb="PANEL ADMIN / ANALITIK & PENGAWASAN">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow-mono">PANEL ADMIN / ANALITIK &amp; PENGAWASAN</div>
+            <h2 class="page-title page-title-xl">Dashboard Analitik Persuratan Terpusat</h2>
+            <p class="page-desc">Pemantauan arus surat seluruh satuan kerja <span class="js-org-short"></span> &#x2014; data agregat tanpa isi naskah.</p>
+          </div>
+          <div class="head-actions">
+            <button type="button" class="btn btn-outline" id="btnAdmSegar"><i class="bi bi-arrow-repeat"></i> Segarkan Data</button>
+            <button type="button" class="btn btn-outline" data-go="laporan"><i class="bi bi-file-earmark-pdf"></i> Laporan PDF</button>
+            <button type="button" class="btn btn-primary" id="btnMetrikCsv"><i class="bi bi-download"></i> Unduh CSV Metrik</button>
+          </div>
+        </div>
+        <div class="policy-banner"><i class="bi bi-shield-check"></i><div><strong>KEBIJAKAN ZERO-CONTENT RBAC (PRD 3.3 &amp; 3.4).</strong> Sesi Admin Surat hanya menerima data agregat numerik dan metadata register. Isi naskah, lampiran, serta tautan berkas Google Drive tidak pernah dikirim ke sesi ini.</div><span class="chip chip-ok d-none d-md-inline-flex">DITEGAKKAN DI SERVER</span></div>
+        <div class="kpi-grid" id="dashKpi"></div>
+        <div class="card filter-card" id="dashFilter"></div>
+        <div class="grid-2">
+          <div class="card chart-card"><div class="card-head"><div><h3 class="card-title">Surat Masuk &amp; Keluar per Unit</h3><div class="card-sub mono">Perbandingan volume naskah masuk vs keluar</div></div><span class="chip">FIG-01</span></div><div class="chart-box chart-tall"><canvas id="chUnit" aria-label="Grafik surat per unit" role="img"></canvas></div><div class="chart-foot" id="chUnitFoot"></div></div>
+          <div class="card chart-card"><div class="card-head"><div><h3 class="card-title">Tren Volume Persuratan Bulanan</h3><div class="card-sub mono">Total surat + rata-rata bergerak 3 bulan</div></div><span class="chip">FIG-02</span></div><div class="chart-box chart-tall"><canvas id="chTren" aria-label="Grafik tren bulanan" role="img"></canvas></div><div class="chart-foot" id="chTrenFoot"></div></div>
+          <div class="card chart-card"><div class="card-head"><div><h3 class="card-title">Komposisi Sifat Naskah</h3><div class="card-sub mono">Distribusi tingkat kepentingan</div></div><span class="chip">FIG-03</span></div><div class="sifat-wrap"><div class="chart-box chart-donut"><canvas id="chSifat" aria-label="Komposisi sifat surat" role="img"></canvas></div><div id="sifatLegend" class="legend-list"></div></div></div>
+          <div class="card chart-card"><div class="card-head"><div><h3 class="card-title">Komposisi Status Resolusi</h3><div class="card-sub mono">Siklus: Terkirim &#x2192; Dibaca &#x2192; Dibalas (per penerima)</div></div><span class="chip">FIG-04</span></div><div id="statusBar"></div><div class="mini-kpi-grid" id="statusMini"></div></div>
+        </div>
+        <div class="grid-main-side">
+          <div class="card insight-card"><div class="card-head"><h3 class="card-title"><i class="bi bi-stars"></i> Analisis Otomatis</h3></div><ul id="insightList" class="insight-list"></ul></div>
+          <div class="card"><div class="card-head"><h3 class="card-title"><i class="bi bi-hdd"></i> Kuota Google Drive</h3></div><div id="storageBox"></div></div>
+        </div>
+        <div class="card card-flush">
+          <div class="card-head px"><div><h3 class="card-title">Tabel Performa Persuratan Satuan Kerja</h3><div class="card-sub mono">Agregat aktivitas antarunit &#x2014; periode terfilter</div></div><button type="button" class="btn btn-outline btn-sm" data-go="rekap">Rekap lengkap <i class="bi bi-arrow-right"></i></button></div>
+          <div id="perfTable"></div>
+        </div>
+      </section>
+
+      <section class="view" id="v-rekap" data-title="Rekap Surat Global" data-crumb="PANEL ADMIN / REKAP SURAT GLOBAL">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow-mono"><span class="chip chip-solid">MODUL W-13</span> MASTER REGISTER BUKU AGENDA</div>
+            <h2 class="page-title page-title-xl">Rekapitulasi Surat Global</h2>
+            <p class="page-desc">Buku register terpusat seluruh arus surat masuk, keluar, balasan, dan disposisi antarsatuan kerja.</p>
+          </div>
+          <div class="head-actions">
+            <button type="button" class="btn btn-outline" id="btnRekapSegar"><i class="bi bi-arrow-repeat"></i> Segarkan</button>
+            <button type="button" class="btn btn-outline-amber" id="btnRekapCsv"><i class="bi bi-download"></i> Ekspor CSV / Excel</button>
+            <button type="button" class="btn btn-primary" id="btnRekapCetak"><i class="bi bi-printer"></i> Cetak Register</button>
+          </div>
+        </div>
+        <div class="policy-box"><div class="policy-ic"><i class="bi bi-lock"></i></div><div><div class="policy-box-h"><i class="bi bi-shield-check"></i> KEBIJAKAN ZERO-CONTENT ACCESS <span class="chip chip-warn ms-2">KERAHASIAAN</span></div><p>Admin Surat hanya berwenang memeriksa <strong>metadata register</strong> (nomor, waktu, unit pengirim, unit tujuan, sifat, status). Isi naskah dan berkas lampiran diblokir di sisi server. <span id="rekapSamarNote"></span></p></div></div>
+        <div class="kpi-grid" id="rekapKpi"></div>
+        <div class="card filter-card" id="rekapFilter"></div>
+        <div class="card card-flush">
+          <div class="table-tools"><span class="small text-muted-2" id="rekapInfo"></span><div class="d-flex gap-2 align-items-center"><label class="small text-muted-2" for="rekapPer">Baris</label><select id="rekapPer" class="input input-sm w-auto"><option>25</option><option>50</option><option>100</option></select></div></div>
+          <div id="rekapList"></div>
+          <div class="pager" id="rekapPager"></div>
+        </div>
+      </section>
+
+      <section class="view" id="v-laporan" data-title="Laporan & Ekspor" data-crumb="PANEL ADMIN / LAPORAN & EKSPOR">
+        <div class="page-head">
+          <div>
+            <h2 class="page-title page-title-xl">Laporan &amp; Ekspor Cetak Persuratan</h2>
+            <p class="page-desc">Laporan resmi, buku agenda, rekapitulasi eksekutif, dan ekspor data untuk rapat pimpinan &amp; audit internal.</p>
+          </div>
+          <div class="head-actions"><button type="button" class="btn btn-primary" id="btnLapCetak2"><i class="bi bi-printer"></i> Cetak Cepat</button></div>
+        </div>
+        <div class="policy-banner"><i class="bi bi-shield-check"></i><div><strong>KEPATUHAN PRD PASAL 3.3 &amp; 3.4.</strong> Laporan hanya memuat ringkasan eksekutif, rekap kuantitatif per unit, register metadata, dan status respons. Isi naskah dan lampiran tidak pernah disertakan.</div><span class="chip chip-warn d-none d-md-inline-flex">TERCATAT DI LOG_AKTIVITAS</span></div>
+        <div class="grid-side-main">
+          <div class="stack">
+            <div class="card">
+              <div class="card-head"><h3 class="card-title">A. Pilihan Templat Laporan</h3><span class="chip">4 OPSI</span></div>
+              <div class="tpl-list" id="lapTpl"></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3 class="card-title">B. Parameter Filter &amp; Cakupan</h3></div>
+              <div class="field"><label for="lapPeriode">Periode analitik</label><select id="lapPeriode" class="input"></select></div>
+              <div class="row g-2"><div class="col-6 field"><label for="lapDari">Tgl awal</label><input type="date" id="lapDari" class="input"></div><div class="col-6 field"><label for="lapSampai">Tgl akhir</label><input type="date" id="lapSampai" class="input"></div></div>
+              <div class="field"><label for="lapUnit">Satuan kerja</label><select id="lapUnit" class="input"></select></div>
+              <div class="row g-2">
+                <div class="col-6"><label class="lbl">Klasifikasi</label><div id="lapSifat" class="check-col"></div></div>
+                <div class="col-6"><label class="lbl">Jenis naskah</label><div id="lapJenis" class="check-col"></div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3 class="card-title">C. Kelengkapan Cetak</h3></div>
+              <label class="check"><input type="checkbox" id="lapKop" checked> Kop resmi &amp; nomor seri dokumen</label>
+              <label class="check"><input type="checkbox" id="lapKpi" checked> Kartu ringkas KPI</label>
+              <label class="check"><input type="checkbox" id="lapTtd" checked> Blok pengesahan / tanda tangan</label>
+              <label class="check"><input type="checkbox" id="lapWm"> Watermark "AUDIT INTERNAL"</label>
+              <div class="d-grid gap-2 mt-3">
+                <button type="button" class="btn btn-primary btn-lg" id="btnLapCetak"><i class="bi bi-printer"></i> Cetak / Simpan PDF</button>
+                <button type="button" class="btn btn-outline" id="btnLapCsv"><i class="bi bi-filetype-csv"></i> Unduh Spreadsheet (CSV)</button>
+              </div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="card">
+              <div class="card-head"><h3 class="card-title"><i class="bi bi-eye"></i> Pratinjau Lembar Dokumen Cetak</h3><span class="chip chip-ok" id="lapOrient">A4</span></div>
+              <div class="print-stage print-stage-sm"><div id="lapPage" class="a4"></div></div>
+            </div>
+            <div class="card card-flush">
+              <div class="card-head px"><h3 class="card-title"><i class="bi bi-clock-history"></i> Riwayat Cetak Laporan (Log_Aktivitas)</h3></div>
+              <div id="lapRiwayat"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="v-akun" data-title="Kelola Akun Unit" data-crumb="PANEL ADMIN / KELOLA AKUN & RBAC">
+        <div class="page-head">
+          <div>
+            <h2 class="page-title page-title-xl">Kelola Akun Unit Kerja</h2>
+            <p class="page-desc">Pembuatan akun, penerbitan password sementara, kontrol status aktif, dan audit kredensial satuan kerja. Unit sekolah memakai dua akun: <strong>Pimpinan</strong> (membuat &amp; menandatangani disposisi) dan <strong>Operator</strong> (mengelola &amp; mencetak surat serta lembar disposisi, tanpa membuat disposisi).</p>
+          </div>
+          <div class="head-actions"><button type="button" class="btn btn-primary" id="btnAkunBaru"><i class="bi bi-plus-lg"></i> Tambah Akun Unit</button></div>
+        </div>
+        <div class="policy-banner policy-banner-amber"><i class="bi bi-shield-lock"></i><div><strong>KEBIJAKAN PRIVASI KATA SANDI.</strong> Admin hanya dapat membuat dan mengatur ulang password sementara. Password asli unit tidak pernah dapat dilihat &#x2014; tersimpan sebagai hash + salt. Unit wajib mengganti password sementara saat login pertama.</div></div>
+        <div class="kpi-grid" id="akunKpi"></div>
+        <div class="card filter-card">
+          <div class="filter-row">
+            <div class="search-box flex-grow-1"><i class="bi bi-search"></i><input type="search" id="akQ" class="input" placeholder="Cari nama unit, kode, PIC, atau email&#x2026;"></div>
+            <select id="akStatus" class="input w-auto" aria-label="Filter status"><option value="">Status: Semua</option><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option><option value="wajib">Wajib ganti password</option><option value="kunci">Terkunci</option></select>
+            <select id="akKelompok" class="input w-auto" aria-label="Filter kelompok"><option value="">Kelompok: Semua</option><option>Sekolah</option><option>Majelis</option><option>Yayasan</option></select>
+            <select id="akJenis" class="input w-auto" aria-label="Filter jenis akun"><option value="">Jenis: Semua</option><option value="Pimpinan">Pimpinan</option><option value="Operator">Operator</option><option value="tunggal">Akun tunggal</option></select>
+          </div>
+        </div>
+        <div class="card card-flush"><div id="akunList"></div></div>
+        <div class="card card-flush">
+          <div class="card-head px"><h3 class="card-title"><i class="bi bi-journal-check"></i> Log Audit Akun &amp; Keamanan Terakhir</h3><span class="chip">LOG_AKTIVITAS</span></div>
+          <div id="akunLog"></div>
+        </div>
+      </section>
+
+      <section class="view" id="v-adminset" data-title="Pengaturan Admin" data-crumb="PANEL ADMIN / PENGATURAN">
+        <div class="page-head"><div><h2 class="page-title page-title-xl">Pengaturan Admin &amp; Identitas</h2><p class="page-desc">Password Admin, identitas kop laporan, dan parameter keamanan sistem.</p></div></div>
+        <div class="grid-2">
+          <div class="stack">
+            <div class="card card-accent-amber">
+              <div class="card-head"><h3 class="card-title"><i class="bi bi-key"></i> Ubah Password Admin</h3></div>
+              <form id="formPassAdm" novalidate>
+                <div class="field"><label for="aLama">Password saat ini</label><input type="password" id="aLama" class="input" autocomplete="current-password" required maxlength="64"></div>
+                <div class="field"><label for="aBaru">Password baru</label><input type="password" id="aBaru" class="input" autocomplete="new-password" required maxlength="64"></div>
+                <div class="strength" id="aStrength"></div>
+                <div class="field"><label for="aUlang">Konfirmasi password baru</label><input type="password" id="aUlang" class="input" autocomplete="new-password" required maxlength="64"><div class="field-err" id="aErr"></div></div>
+                <div class="d-flex justify-content-end"><button type="submit" class="btn btn-primary"><i class="bi bi-key"></i> Simpan Password</button></div>
+              </form>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3 class="card-title"><i class="bi bi-gear"></i> Parameter Keamanan Sistem</h3></div>
+              <form id="formSistem" novalidate class="row g-3">
+                <div class="col-6 field"><label for="cfIdle">Sesi idle (menit)</label><input type="number" id="cfIdle" class="input" min="5" max="360" required></div>
+                <div class="col-6 field"><label for="cfPoll">Polling (detik)</label><input type="number" id="cfPoll" class="input" min="15" max="120" required></div>
+                <div class="col-6 field"><label for="cfMaks">Maks. gagal login</label><input type="number" id="cfMaks" class="input" min="3" max="10" required></div>
+                <div class="col-6 field"><label for="cfKunci">Lama kunci (menit)</label><input type="number" id="cfKunci" class="input" min="5" max="240" required></div>
+                <div class="col-12 d-flex justify-content-end"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Simpan Parameter</button></div>
+              </form>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3 class="card-title"><i class="bi bi-building"></i> Identitas Kop &amp; Aplikasi</h3></div>
+            <form id="formIdentitas" novalidate class="row g-3">
+              <div class="col-12 field"><label for="idNamaApp">Nama aplikasi</label><input id="idNamaApp" class="input" maxlength="80" required></div>
+              <div class="col-12 field"><label for="idYayasan">Nama yayasan (kop)</label><input id="idYayasan" class="input" maxlength="120" required></div>
+              <div class="col-md-6 field"><label for="idSingkat">Nama singkat</label><input id="idSingkat" class="input" maxlength="60" required></div>
+              <div class="col-md-6 field"><label for="idKota">Kota penandatanganan</label><input id="idKota" class="input" maxlength="60"></div>
+              <div class="col-12 field"><label for="idAlamat">Alamat</label><input id="idAlamat" class="input" maxlength="200"></div>
+              <div class="col-md-4 field"><label for="idTelp">Telepon</label><input id="idTelp" class="input" maxlength="40"></div>
+              <div class="col-md-4 field"><label for="idEmail">Email</label><input id="idEmail" class="input" maxlength="80"></div>
+              <div class="col-md-4 field"><label for="idWeb">Website</label><input id="idWeb" class="input" maxlength="80"></div>
+              <div class="col-12 field"><label for="idLogo">Logo yayasan &#x2014; halaman login (URL https, opsional)</label><input id="idLogo" class="input" maxlength="300" placeholder="https://&#x2026;"><div class="small text-muted-2 mt-1">Hanya Admin Surat yang dapat mengubah logo ini. Tampil di halaman login, panel Admin, laporan Admin, dan unit yang belum mengunggah logo sendiri. Logo &amp; nama sekolah masing-masing diatur oleh akun Pimpinan di menu Pengaturan unit.</div></div>
+              <div class="col-md-6 field"><label for="idTtdNama">Penandatangan laporan</label><input id="idTtdNama" class="input" maxlength="80"></div>
+              <div class="col-md-6 field"><label for="idTtdJab">Jabatan</label><input id="idTtdJab" class="input" maxlength="80"></div>
+              <div class="col-12 field"><label for="idJabDisp">Jabatan tujuan disposisi (semua unit)</label><input id="idJabDisp" class="input" maxlength="300" placeholder="Kepala TU, Bendahara, Staff, Wakil Kurikulum, Wakil Kesiswaan, Wakil Bid. Agama"><div class="small text-muted-2 mt-1">Pisahkan dengan koma. Muncul sebagai pilihan centang saat unit membuat disposisi.</div></div>
+              <div class="col-12 d-flex justify-content-end"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Simpan Identitas</button></div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <nav class="bottomnav" id="bottomNav" aria-label="Navigasi bawah"></nav>
+    <button type="button" class="fab role-unit" data-go="tulis" aria-label="Tulis surat baru"><i class="bi bi-plus-lg"></i></button>
+  </div>
+</div>
+
+<div class="modal fade" id="mWajib" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="mWajibT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="mandatory-band"><i class="bi bi-exclamation-square"></i> STATUS: AKUN BARU / SETELAH RESET ADMIN <span class="mandatory-tag">[WAJIB]</span></div>
+      <div class="modal-body p-4">
+        <h2 class="modal-h" id="mWajibT">Wajib Ganti Password</h2>
+        <p class="text-muted-2">Demi keamanan akun unit, Anda diwajibkan memperbarui kata sandi sementara sebelum melanjutkan ke aplikasi.</p>
+        <form id="formWajib" novalidate>
+          <div class="field"><label for="wLama">Password lama / sementara</label><input type="password" id="wLama" class="input input-tint" autocomplete="current-password" required maxlength="64"></div>
+          <div class="field"><label for="wBaru">Password baru</label><input type="password" id="wBaru" class="input" autocomplete="new-password" placeholder="Minimal 8 karakter&#x2026;" required maxlength="64"><div class="hint"><i class="bi bi-info-circle"></i> Kombinasi huruf besar, kecil, dan angka.</div></div>
+          <div class="strength" id="wStrength"></div>
+          <div class="field"><label for="wUlang">Konfirmasi password baru</label><input type="password" id="wUlang" class="input" autocomplete="new-password" placeholder="Ulangi password baru&#x2026;" required maxlength="64"><div class="field-err" id="wErr"></div></div>
+          <button type="submit" class="btn btn-primary btn-xl w-100" id="btnWajib">SIMPAN &amp; LANJUTKAN <i class="bi bi-check-circle"></i></button>
+          <p class="mandatory-foot">* Jendela ini tidak dapat ditutup sampai password diperbarui. <button type="button" class="link-btn small" id="btnWajibKeluar">Keluar</button></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mHapus" tabindex="-1" aria-labelledby="mHapusT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-danger">
+      <div class="modal-header"><div class="modal-title" id="mHapusT"><span class="danger-ic"><i class="bi bi-exclamation-triangle"></i></span> KONFIRMASI HAPUS SURAT KELUAR</div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+      <div class="modal-body">
+        <div class="lbl">Tindakan penghapusan naskah keluar:</div>
+        <div class="modal-q">Apakah Anda yakin ingin menghapus surat nomor:</div>
+        <div class="nomor-box mono" id="hapusNomor"></div>
+        <div class="small mb-3"><span class="text-muted-2">Perihal:</span> <strong id="hapusPerihal"></strong></div>
+        <div class="warn-box"><div class="warn-box-h"><i class="bi bi-shield-exclamation"></i> KETENTUAN KEPATUHAN TATA NASKAH (SOFT DELETE)</div><p class="mb-0"><strong>PENTING:</strong> Surat akan dihilangkan dari daftar aktif Anda dan dari kotak masuk penerima. Data tetap tersimpan permanen di database (kolom <code>dihapus = TRUE</code>) dan tercatat di <strong>Log Aktivitas</strong>.</p></div>
+        <label class="check mt-3"><input type="checkbox" id="hapusSetuju"> Saya mengonfirmasi bahwa penghapusan ini telah diketahui pimpinan unit.</label>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal / Kembali</button><button type="button" class="btn btn-danger" id="btnHapusYa" disabled><i class="bi bi-trash3"></i> Ya, Hapus Naskah</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mDisposisi" tabindex="-1" aria-labelledby="mDispT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><div class="modal-title" id="mDispT"><i class="bi bi-pen"></i> Disposisi Surat</div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+      <div class="modal-body">
+        <div class="ref-card" id="dispRef"></div>
+        <div class="field">
+          <div class="field-head"><label id="dispJabL">Untuk dibaca dan ditembuskan kepada <span class="req">*</span></label><button type="button" class="link-btn small" id="dispSemua">Pilih semua</button></div>
+          <div class="jab-grid" id="dispJab" role="group" aria-labelledby="dispJabL"></div>
+          <div class="field-err" id="dispJabErr" role="alert"></div>
+        </div>
+        <div class="field"><div class="field-head"><label for="dispCatatan">Catatan / instruksi disposisi <span class="req">*</span></label><span class="counter" id="cDisp">0 / 2000</span></div><textarea id="dispCatatan" class="input" rows="4" maxlength="2000" placeholder="Contoh: Mohon disiapkan bahan paparan untuk rapat hari Kamis. Koordinasikan anggaran dengan Bendahara."></textarea></div>
+        <div class="ttd-sign" id="dispTtd"></div>
+        <div class="field mt-3" id="dispPinWrap"><label for="dispPin">PIN tanda tangan <span class="req">*</span></label><input type="password" id="dispPin" class="input pin-input" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;" aria-describedby="dispErr"><div class="field-err" id="dispErr" role="alert"></div></div>
+        <div class="alert-inline alert-info-soft mb-0"><i class="bi bi-info-circle"></i><div>Disposisi bersifat <strong>internal unit</strong> dan tidak dikirim ke unit lain. Setelah ditandatangani isinya terkunci; bila keliru, batalkan lalu buat disposisi baru.</div></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button><button type="button" class="btn btn-primary" id="btnDispKirim"><i class="bi bi-pen"></i> Tandatangani &amp; Simpan</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mDispLihat" tabindex="-1" aria-labelledby="mDLT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><div class="modal-title" id="mDLT"><i class="bi bi-patch-check"></i> Lembar Disposisi</div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+      <div class="modal-body">
+        <div class="ref-card" id="dlRef"></div>
+        <div class="ld-wrap" id="dlIsi"></div>
+        <div class="dl-batal" id="dlBatal" hidden>
+          <div class="field"><label for="dlAlasan">Alasan pembatalan <span class="req">*</span></label><textarea id="dlAlasan" class="input" rows="2" maxlength="300" placeholder="Contoh: Salah memilih jabatan tujuan."></textarea></div>
+          <div class="d-flex flex-wrap gap-2 align-items-end">
+            <div class="field mb-0"><label for="dlPin">PIN tanda tangan <span class="req">*</span></label><input type="password" id="dlPin" class="input pin-input" inputmode="numeric" maxlength="6" autocomplete="off"></div>
+            <button type="button" class="btn btn-danger" id="btnDlBatalOk"><i class="bi bi-x-octagon"></i> Konfirmasi pembatalan</button>
+          </div>
+          <div class="field-err" id="dlErr" role="alert"></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-ghost-danger me-auto" id="btnDlBatal"><i class="bi bi-x-octagon"></i> Batalkan disposisi</button><button type="button" class="btn btn-outline" data-bs-dismiss="modal">Tutup</button><button type="button" class="btn btn-primary" id="btnDlCetak"><i class="bi bi-printer"></i> Cetak Lembar</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mTtd" tabindex="-1" aria-labelledby="mTtdT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><div class="modal-title" id="mTtdT"><i class="bi bi-pen"></i> Tanda Tangan Digital Kepala Unit</div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+      <form id="formTtd" novalidate>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-7 field mb-0"><label for="ttdNama">Nama lengkap &amp; gelar <span class="req">*</span></label><input id="ttdNama" class="input" maxlength="80" required autocomplete="name" placeholder="Contoh: Drs. Ahmad Fauzi, M.Pd."></div>
+            <div class="col-md-5 field mb-0"><label for="ttdNip">NIP / NIY (opsional)</label><input id="ttdNip" class="input mono" maxlength="40" inputmode="numeric" autocomplete="off"></div>
+            <div class="col-12 field mb-0"><label for="ttdJab">Jabatan pada tanda tangan <span class="req">*</span></label><input id="ttdJab" class="input" maxlength="80" required></div>
+          </div>
+          <div class="field mt-3">
+            <div class="field-head wrap"><label for="ttdCanvas">Gambar tanda tangan <span class="req" id="ttdReq">*</span></label>
+              <div class="d-flex gap-2"><button type="button" class="btn btn-ghost btn-sm" id="ttdHapus"><i class="bi bi-eraser"></i> Bersihkan</button><label class="btn btn-outline btn-sm mb-0" for="ttdFile"><i class="bi bi-upload"></i> Unggah gambar</label><input type="file" id="ttdFile" accept="image/png,image/jpeg" class="visually-hidden"></div></div>
+            <div class="ttd-pad"><canvas id="ttdCanvas" tabindex="0" aria-label="Area menggambar tanda tangan"></canvas><div class="ttd-line" aria-hidden="true"></div><div class="ttd-hint" id="ttdHint">Gambar tanda tangan di sini dengan mouse, pena, atau jari</div></div>
+            <div class="ttd-info" id="ttdLamaInfo"></div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6 field mb-0"><label for="ttdPinBaru">PIN baru (6 angka) <span class="req" id="ttdPinReq">*</span></label><input type="password" id="ttdPinBaru" class="input pin-input" inputmode="numeric" maxlength="6" autocomplete="new-password"></div>
+            <div class="col-md-6 field mb-0"><label for="ttdPinUlang">Ulangi PIN baru</label><input type="password" id="ttdPinUlang" class="input pin-input" inputmode="numeric" maxlength="6" autocomplete="new-password"></div>
+            <div class="col-12"><div class="ttd-info" id="ttdPinHint"></div></div>
+          </div>
+          <div class="ttd-otor">
+            <div class="field mb-0"><label for="ttdOtor" id="ttdOtorL">PIN tanda tangan saat ini</label><input type="password" id="ttdOtor" class="input" autocomplete="off"></div>
+            <div class="ttd-info" id="ttdOtorHint"></div>
+          </div>
+          <div class="field-err" id="ttdErr" role="alert"></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-primary" id="btnTtdSimpan"><i class="bi bi-shield-check"></i> Simpan Tanda Tangan</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mIdent" tabindex="-1" aria-labelledby="mIdentT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header"><div class="modal-title" id="mIdentT"><i class="bi bi-building"></i> Logo &amp; Nama Sekolah</div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+      <form id="formIdent" novalidate>
+        <div class="modal-body">
+          <div class="field">
+            <label for="idnNama">Nama sekolah / unit (tampil di aplikasi &amp; kop cetak)</label>
+            <input id="idnNama" class="input" maxlength="120" autocomplete="organization" placeholder="Contoh: SMA Islam PB. Soedirman 1 Bekasi">
+            <div class="small text-muted-2 mt-1" id="idnNamaHint"></div>
+          </div>
+          <div class="field">
+            <div class="field-head wrap"><label for="idnFile">Logo sekolah</label>
+              <div class="d-flex gap-2"><button type="button" class="btn btn-ghost btn-sm" id="idnHapus"><i class="bi bi-arrow-counterclockwise"></i> Pakai logo yayasan</button><label class="btn btn-outline btn-sm mb-0" for="idnFile"><i class="bi bi-upload"></i> Pilih gambar</label><input type="file" id="idnFile" accept="image/png,image/jpeg,image/webp" class="visually-hidden"></div></div>
+            <div class="idn-drop" id="idnDrop"><div class="idn-logo" id="idnLogo"></div><div class="idn-drop-t">Seret gambar logo ke sini, atau klik <strong>Pilih gambar</strong>.<br><span>PNG, JPG, atau WebP, maks 5 MB. Diperkecil otomatis menjadi maks 256 px; latar transparan PNG tetap dipertahankan.</span></div></div>
+          </div>
+          <div class="lbl mb-2">Pratinjau kop cetak</div>
+          <div class="idn-kop" id="idnKop"></div>
+          <div class="alert-inline alert-info-soft mt-3 mb-0"><i class="bi bi-info-circle"></i><div>Logo &amp; nama ini dipakai di sidebar dan beranda akun Pimpinan &amp; Operator unit Anda, serta kop surat, lembar disposisi, dan buku agenda yang dicetak. <strong>Logo halaman login hanya dapat diubah Admin Surat.</strong></div></div>
+          <div class="field-err" id="idnErr" role="alert"></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-primary" id="btnIdnSimpan"><i class="bi bi-save"></i> Simpan Identitas</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mPreview" tabindex="-1" aria-labelledby="mPrevT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-md-down">
+    <div class="modal-content">
+      <div class="modal-header"><div class="modal-title text-truncate" id="mPrevT">Pratinjau Lampiran</div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+      <div class="modal-body preview-body" id="previewBody"></div>
+      <div class="modal-footer"><span class="me-auto small text-muted-2" id="previewInfo"></span><button type="button" class="btn btn-outline" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Tutup</button><button type="button" class="btn btn-primary" id="btnPreviewUnduh"><i class="bi bi-download"></i> Unduh</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mAkun" tabindex="-1" aria-labelledby="mAkunT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><div class="modal-title" id="mAkunT">Tambah Akun Unit</div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+      <form id="formAkun" novalidate>
+        <div class="modal-body row g-3">
+          <input type="hidden" id="akId">
+          <div class="col-12 field"><label for="akNama">Nama unit <span class="req">*</span></label><input id="akNama" class="input" maxlength="80" required list="akUnitList" autocomplete="off"><datalist id="akUnitList"></datalist><div class="hint" id="akNamaHint">Nama tidak dapat diubah setelah dibuat (dipakai sebagai identitas surat).</div></div>
+          <div class="col-6 field"><label for="akKode">Kode unit <span class="req">*</span></label><input id="akKode" class="input mono" maxlength="20" required placeholder="SMA-BKS1"></div>
+          <div class="col-6 field"><label for="akKel">Kelompok <span class="req">*</span></label><select id="akKel" class="input"><option>Sekolah</option><option>Majelis</option><option>Yayasan</option></select></div>
+          <div class="col-12 field" id="akLevelWrap"><label for="akLevel">Jenis akun <span class="req">*</span></label><select id="akLevel" class="input"><option value="Pimpinan">Pimpinan &#x2014; membuat &amp; menandatangani disposisi</option><option value="Operator">Operator &#x2014; tanpa disposisi, dapat mencetak</option><option value="">Akun tunggal &#x2014; seluruh fitur unit</option></select><div class="hint" id="akLevelHint"></div></div>
+          <div class="col-6 field"><label for="akPic">PIC / Tata Usaha</label><input id="akPic" class="input" maxlength="80"></div>
+          <div class="col-6 field"><label for="akEmail">Email</label><input id="akEmail" type="email" class="input" maxlength="120"></div>
+          <div class="col-12 field" id="akPassWrap"><div class="field-head"><label for="akPass">Password sementara <span class="req">*</span></label><button type="button" class="link-btn small" id="btnAkGen"><i class="bi bi-shuffle"></i> Buat acak</button></div><div class="input-wrap"><input id="akPass" class="input mono" maxlength="64"><button type="button" class="input-eye" id="btnAkCopy" aria-label="Salin"><i class="bi bi-clipboard"></i></button></div><div class="hint">Pengguna wajib mengganti password ini saat login pertama.</div></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-primary" id="btnAkSimpan"><i class="bi bi-save"></i> Simpan</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mReset" tabindex="-1" aria-labelledby="mResetT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><div class="modal-title" id="mResetT"><i class="bi bi-key"></i> Formulir Reset Password</div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+      <div class="modal-body">
+        <div class="ref-card"><div class="lbl">Target akun / satuan kerja</div><div class="ref-title" id="rsNama"></div><div class="small text-muted-2 mono" id="rsKode"></div></div>
+        <div class="field"><div class="field-head"><label for="rsPass">Password sementara baru</label><button type="button" class="link-btn small" id="btnRsGen"><i class="bi bi-shuffle"></i> Buat ulang</button></div><div class="input-wrap"><input id="rsPass" class="input mono" maxlength="64"><button type="button" class="input-eye" id="btnRsCopy" aria-label="Salin password"><i class="bi bi-clipboard"></i></button></div><div class="hint">Kombinasi huruf besar, kecil, dan angka. Sampaikan ke PIC unit melalui jalur resmi.</div></div>
+        <label class="check"><input type="checkbox" checked disabled> Paksa pengguna mengganti password saat login berikutnya (wajib_ganti_password = Ya)</label>
+        <label class="check"><input type="checkbox" checked disabled> Putuskan semua sesi aktif akun ini</label>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" data-bs-dismiss="modal">Batal</button><button type="button" class="btn btn-primary" id="btnRsSimpan"><i class="bi bi-shield-check"></i> Simpan &amp; Terapkan Reset</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mKonfirm" tabindex="-1" aria-labelledby="mKonfirmT" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><div class="modal-title" id="mKonfirmT">Konfirmasi</div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+      <div class="modal-body" id="mKonfirmBody"></div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" data-bs-dismiss="modal" id="mKonfirmTidak">Batal</button><button type="button" class="btn btn-primary" id="mKonfirmYa">Lanjutkan</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="printArea" aria-hidden="true"></div>
+
+<div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>window.bootstrap || document.write('<script src="https:\/\/unpkg.com/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"><\/script>');</script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

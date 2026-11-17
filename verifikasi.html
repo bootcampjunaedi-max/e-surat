@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0F4C3A">
+  <link rel="icon" href="data:,">
+  <title>Verifikasi Disposisi</title>
+  <style>
+    [hidden] { display: none !important; }
+    body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: #F1F5F9; color: #0F172A; }
+    .w { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
+    .c { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 2px rgba(15, 23, 42, .06); }
+    .h { padding: 18px 20px; border-bottom: 1px solid #E2E8F0; }
+    .y { font-size: 13px; color: #475569; letter-spacing: .02em; }
+    .t { font-size: 18px; font-weight: 700; margin-top: 2px; }
+    .s { margin: 16px 20px; padding: 14px 16px; border-radius: 10px; border: 1px solid #CBD5E1; background: #F8FAFC; }
+    .sl { font-weight: 800; letter-spacing: .06em; }
+    .sd { margin-top: 4px; font-size: 14px; line-height: 1.5; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    td { padding: 10px 20px; border-top: 1px solid #F1F5F9; vertical-align: top; line-height: 1.5; overflow-wrap: anywhere; }
+    td.k { width: 38%; color: #475569; }
+    .f { padding: 14px 20px; font-size: 12px; color: #64748B; border-top: 1px solid #E2E8F0; }
+    form { display: flex; gap: 8px; padding: 0 20px 18px; flex-wrap: wrap; }
+    input { flex: 1 1 220px; font: 15px/1.4 ui-monospace, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 8px; }
+    button { font: 600 14px system-ui, sans-serif; padding: 10px 16px; border: 0; border-radius: 8px; background: #0F4C3A; color: #fff; cursor: pointer; }
+    .muat { display: inline-block; width: 14px; height: 14px; border: 2px solid #94A3B8; border-top-color: transparent; border-radius: 50%; animation: p .8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+    @keyframes p { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="w">
+    <div class="c">
+      <div class="h"><div class="y" id="yys">Yayasan Masjid Panglima Besar Soedirman</div><div class="t">Verifikasi Tanda Tangan Digital Disposisi</div></div>
+      <div class="s" id="status" role="status"><div class="sl"><span class="muat"></span>MEMERIKSA&#x2026;</div><div class="sd">Menghubungi server untuk memeriksa kode verifikasi.</div></div>
+      <table id="rincian" hidden></table>
+      <form id="formKode" hidden>
+        <input id="kode" maxlength="29" placeholder="Kode verifikasi (mis. ABCD-EFGH-JKLM)" autocomplete="off" aria-label="Kode verifikasi">
+        <button type="submit">Periksa</button>
+      </form>
+      <div class="f">Halaman ini hanya menampilkan data pendaftaran tanda tangan. Cocokkan isi di atas dengan dokumen cetak yang Anda pegang.</div>
+    </div>
+  </div>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/verifikasi.js"></script>
+</body>
+</html>
