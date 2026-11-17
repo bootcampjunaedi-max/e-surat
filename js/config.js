@@ -13,7 +13,7 @@
  * ============================================================================
  */
 window.YASMA_CONFIG = {
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbw6FJwTbwGr4b1N8Yw1pwGsEfSypPlek1vpQyy0NwIVN1dXExxX4DFIoe_7-lwDGeMf4A/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbzmg9gMJSdmMMG1M5kSKo-gNofVANh6dxywZb4Sw82mvrcS0iTaS4S1feK6xahf4KyGbg/exec',
 
   /*
    * Opsional. Alamat halaman verifikasi QR tanda tangan disposisi.
